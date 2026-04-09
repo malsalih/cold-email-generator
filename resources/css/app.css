@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'Courier New', monospace;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+}
+
+/* Range input styling for dark theme */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #7c3aed, #06b6d4);
+    opacity: 0.4;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #7c3aed;
+    border: 2px solid #1c1c22;
+    margin-top: -6px;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+    transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.6);
+}
+
+/* Select dropdown arrow for dark theme */
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em;
+    padding-right: 2.5rem;
+}
+
+/* Smooth page transitions */
+main {
+    animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Pagination styling override */
+nav[role="navigation"] {
+    display: flex;
+    justify-content: center;
+}
+nav[role="navigation"] .relative.inline-flex {
+    gap: 4px;
+}
+nav[role="navigation"] span[aria-current="page"] span,
+nav[role="navigation"] a {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #27272a;
+    color: #a1a1aa;
+    transition: all 0.2s;
+}
+nav[role="navigation"] span[aria-current="page"] span {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: white;
+}
+nav[role="navigation"] a:hover {
+    background: #27272a;
+    color: white;
+}

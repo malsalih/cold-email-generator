@@ -325,7 +325,7 @@ PROMPT;
     protected function correctSpamViaML(array $variants): array
     {
         try {
-            $response = Http::timeout(10)->post('http://127.0.0.1:5000/correct', [
+            $response = Http::timeout(10)->post('http://127.0.0.1:5050/correct', [
                 'variants' => $variants,
             ]);
 

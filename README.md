@@ -1,42 +1,35 @@
-# ⚡ ColdForge — AI Cold Email Generator
+# ⚡ ColdForge — Domain Sales Engine & ML Spam Defense
 
-A full-stack Laravel web application that generates highly optimized, **anti-spam cold emails** using the **Google Gemini API**. Built with a premium dark UI, comprehensive prompt engineering, and full email history tracking.
+A full-stack Laravel web application that generates highly optimized, **anti-spam cold emails** using the **Google Gemini API**, and rigorously verifies them using a **custom Python Machine Learning Microservice**. Built with a premium dark UI, adaptive ML scoring, and full email history tracking.
 
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Gemini_API-2.0_Flash-4285F4?style=flat-square&logo=google&logoColor=white)
-![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white)
+![Python](https://img.shields.io/badge/Python-Flask_ML-3776AB?style=flat-square&logo=python&logoColor=white)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Model-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
 
 ---
 
 ## ✨ Features
 
-### 🎯 Target Domain Processing
-- Input any company domain (e.g., `eagnt.com`, `oyanx.com`)
-- Auto-generates 3–10 professional email prefixes across **7 categories**: executive, general, sales, marketing, support, HR, technical
-- Ensures address diversity by always including general category
+### 🛡️ ML-Powered Spam Defense & Correction
+- **Local AI Classification**: A `MultinomialNB` model (trained on 136k emails) analyzes Gemini's drafts and assigns a Spam Probability score (0-100%).
+- **Feature-Weighted Dynamic Correction**: If the score exceeds 70%, the Flask microservice analyzes which *specific words* contributed most to the spam classification and automatically replaces them with grammatically correct B2B synonyms (e.g., `guaranteed` → `well-positioned`, `purchase` → `explore`).
+- **Gmail RETVec Protection**: Uses a 5-layer pipeline to fix excessive punctuation (`!!!` → `.`), kill URL shorteners, correct SHOUTING caps, and repair broken merge tags before the email is finalized.
+- **Protected Vocabulary**: Core business terminology (`domain`, `company`, `acquire`, `strategy`) is strictly protected from deletion to preserve message integrity.
 
-### 🛡️ Anti-Spam Engine
-The system prompt explicitly instructs Gemini to:
-- **Block 30+ spam trigger words** (Free, Act Now, 100% Guarantee, $$$, etc.)
-- Keep subject lines to **4–8 words**, lowercase, no emojis
-- Limit email body to **under 120 words**
-- Use **soft, low-friction CTAs** ("Would it make sense to chat for 15 minutes?")
-- Output **plain text only** — no HTML, no bold, no images
-- Personalize based on the target domain's inferred industry
+### 🎯 Domain Sales & Variant Tracking
+- **Multi-Variant Generation**: Generate 1, 5, 10, or 20 distinct permutations of an email in a single click.
+- **Diff Comparison**: The UI visualizes the Before/After Spam Score (e.g., `Gemini 94% ➔ Fixed 32%`) and lets you toggle a "View Original" diff to see exactly what the ML engine altered.
 
-### 📊 History & A/B Testing
-- Every generation is saved with full metadata
-- Search by domain, subject, or content
-- View the exact prompt sent to Gemini for each email
-- Track tokens used and generation time
+### 📊 History & Testing
+- Every generated email is saved with full metadata (Was Spam?, Before Score, After Score).
+- Copy-to-Clipboard integration for immediate sending.
 
 ### 🎨 Premium Dark UI
-- Built with **Tailwind CSS 4** + **Alpine.js**
-- Glassmorphism effects with ambient gradient glows
-- Smooth animations and micro-interactions
-- Inter + JetBrains Mono typography
-- Fully responsive design
+- Built with **Tailwind CSS 4** + **Alpine.js**.
+- Custom probability meters and status badges (ML Verified vs ML Corrected).
+- Glassmorphism effects with ambient gradient glows.
 
 ---
 
@@ -44,11 +37,11 @@ The system prompt explicitly instructs Gemini to:
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Laravel 13 (PHP 8.2+) |
+| **Backend API** | Laravel 13 (PHP 8.2+) |
 | **Frontend** | Blade Templates + Tailwind CSS 4 + Alpine.js |
-| **Database** | SQLite (default) / MySQL / PostgreSQL |
-| **AI Engine** | Google Gemini API (gemini-2.0-flash) |
-| **Build Tool** | Vite 8 |
+| **ML Microservice** | Python 3 + Flask + Scikit-Learn |
+| **AI Generation**| Google Gemini API (gemini-2.0-flash) |
+| **Database** | SQLite (default) / MySQL |
 
 ---
 
@@ -57,10 +50,9 @@ The system prompt explicitly instructs Gemini to:
 ### Prerequisites
 
 Make sure you have installed:
-- **PHP 8.2+** with extensions: `openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `curl`
-- **Composer** (PHP dependency manager)
-- **Node.js 18+** and **npm**
-- **Git**
+- **PHP 8.2+** with Composer
+- **Node.js 18+** with npm
+- **Python 3.10+** (For the ML microservice)
 
 ### Step 1: Clone the Repository
 
@@ -69,84 +61,43 @@ git clone https://github.com/malsalih/cold-email-generator.git
 cd cold-email-generator
 ```
 
-### Step 2: Install PHP Dependencies
+### Step 2: Setup Laravel (PHP/Node)
 
 ```bash
 composer install
-```
-
-### Step 3: Install Node Dependencies
-
-```bash
 npm install
-```
-
-### Step 4: Environment Setup
-
-```bash
 cp .env.example .env
 php artisan key:generate
+php artisan migrate
 ```
 
-### Step 5: Configure Your Gemini API Key
-
-Open the `.env` file and add your Gemini API key:
-
+Open `.env` and add your Gemini API key:
 ```env
 GEMINI_API_KEY=your-api-key-here
 GEMINI_MODEL=gemini-2.0-flash
 ```
 
-> 🔑 **Get a free Gemini API key** from [Google AI Studio](https://aistudio.google.com/apikey)
+### Step 3: Setup ML Microservice (Python)
 
-### Step 6: Database Setup
-
-**Option A: SQLite (Default — Zero Config)**
-
-The default configuration uses SQLite. Just run:
+The core spam classification logic runs on a dedicated Flask port.
 
 ```bash
-php artisan migrate
+cd ml_service
+python -m venv .venv
+
+# Windows
+.\.venv\Scripts\activate
+# Mac/Linux
+source .venv/bin/activate
+
+pip install flask scikit-learn pandas requests joblib
 ```
 
-**Option B: MySQL**
+---
 
-Update your `.env`:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=coldforge
-DB_USERNAME=root
-DB_PASSWORD=your_password
-```
+## 🚦 Starting the Services
 
-Create the database, then migrate:
-```bash
-mysql -u root -p -e "CREATE DATABASE coldforge;"
-php artisan migrate
-```
-
-**Option C: PostgreSQL**
-
-Update your `.env`:
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=coldforge
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-```
-
-Then migrate:
-```bash
-php artisan migrate
-```
-
-### Step 7: Start the Application
-
-You need **two terminal windows**:
+You need **three terminal windows** to run the complete stack:
 
 **Terminal 1 — Vite (Frontend Assets):**
 ```bash
@@ -158,9 +109,25 @@ npm run dev
 php artisan serve
 ```
 
-### Step 8: Open in Browser
+**Terminal 3 — ML Microservice:**
+```bash
+cd ml_service
+.\.venv\Scripts\activate
+python app.py
+```
+*(The Flask server must be running on port 5000 for Laravel to perform spam corrections).*
 
 Navigate to: **http://127.0.0.1:8000**
+
+---
+
+## 📝 How It Works
+
+1. **User Prompt**: You input a Target Domain and instructions.
+2. **LLM Generation**: Laravel sends an anti-spam engineered prompt to the Gemini API, requesting multiple unique variants.
+3. **ML Interception**: Laravel catches Gemini's response and forwards the drafts to the complete `http://127.0.0.1:5000/correct` Flask endpoint.
+4. **Scoring & Rewriting**: The Python script transforms text into TF-IDF vectors, runs it through the Naive Bayes model, scores the spam probability, and structurally rewrites problematic words if the score exceeds 70%.
+5. **UI Delivery**: The final, sanitized emails are saved to the database and presented in the UI alongside visual meters indicating how much intervention was required.
 
 ---
 
@@ -170,72 +137,17 @@ Navigate to: **http://127.0.0.1:8000**
 cold-email-generator/
 ├── app/
 │   ├── Http/Controllers/
-│   │   └── EmailGeneratorController.php   # Main controller (6 actions)
-│   ├── Models/
-│   │   └── GeneratedEmail.php             # Eloquent model with scopes
+│   │   └── EmailGeneratorController.php   # Handles Form/Max Variants logic
 │   └── Services/
-│       └── GeminiService.php              # Gemini API + anti-spam engine
-├── config/
-│   └── services.php                       # Gemini config (api_key, model)
-├── database/
-│   └── migrations/
-│       └── ...create_generated_emails...  # Email storage schema
+│       └── GeminiService.php              # Communicates with Gemini API & Python API
+├── ml_service/
+│   ├── app.py                             # Flask ML API (Correction Pipeline)
+│   ├── spam_model.pkl                     # Pre-trained Scikit-learn MultinomialNB Model
+│   ├── vectorizer.pkl                     # TF-IDF Vector Vocabulary
+│   └── spam_dataset.csv                   # Curated Ham/Spam Training Data
 ├── resources/
-│   ├── css/
-│   │   └── app.css                        # Tailwind 4 + custom styles
-│   └── views/
-│       ├── layouts/
-│       │   └── app.blade.php              # Base layout (nav, footer, flash)
-│       └── generator/
-│           ├── index.blade.php            # Generator form page
-│           ├── result.blade.php           # Generated email result
-│           ├── history.blade.php          # Email history with search
-│           └── show.blade.php             # Single email detail view
-├── routes/
-│   └── web.php                            # 6 route definitions
-├── .env.example                           # Environment template
-└── README.md                              # This file
+│   └── views/generator/
+│       ├── result.blade.php               # Result UI with Diff/Score features
+│       └── index.blade.php                # Master Generator Form
+└── README.md
 ```
-
----
-
-## 🔌 Routes
-
-| Method | URI | Action | Description |
-|--------|-----|--------|-------------|
-| `GET` | `/` | `index` | Generator form |
-| `POST` | `/generate` | `generate` | Generate email via Gemini |
-| `GET` | `/result/{id}` | `result` | View generated email |
-| `GET` | `/history` | `history` | Browse all emails |
-| `GET` | `/history/{id}` | `show` | View email details |
-| `DELETE` | `/history/{id}` | `destroy` | Delete email record |
-
----
-
-## 🔧 Configuration
-
-All configuration is done via the `.env` file:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GEMINI_API_KEY` | *(empty)* | Your Google Gemini API key |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model to use |
-| `DB_CONNECTION` | `sqlite` | Database driver |
-
----
-
-## 📝 How It Works
-
-1. **User inputs** a target domain and instructions
-2. **GeminiService** generates random professional email prefixes for that domain
-3. The service constructs a **comprehensive anti-spam system prompt** with 30+ blocked trigger words
-4. A **user prompt** is built with domain context, product/service info, and tone preference
-5. The Gemini API is called with `responseMimeType: application/json` for structured output
-6. The response is parsed and the email (subject + body) is **saved to the database**
-7. The user sees the result with **Copy to Clipboard** buttons
-
----
-
-## 📄 License
-
-This project is open-sourced for personal use.

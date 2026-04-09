@@ -35,53 +35,82 @@ class EmailGeneratorController extends Controller
     public function generate(Request $request)
     {
         $validated = $request->validate([
-            'target_domain' => 'required|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/',
+            'owned_domain' => 'required|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/',
+            'target_website' => 'nullable|string|max:255',
+            'target_emails' => 'nullable|string|max:10000',
+            'max_emails' => 'required|integer|min:1|max:50',
             'instructions' => 'required|string|min:10|max:2000',
-            'product_service' => 'nullable|string|max:500',
             'tone' => 'required|string|in:' . implode(',', array_keys($this->getAvailableTones())),
-            'email_count' => 'nullable|integer|min:3|max:10',
         ], [
-            'target_domain.regex' => 'Please enter a valid domain (e.g., example.com without http://).',
+            'owned_domain.regex' => 'Please enter a valid domain (e.g., mysuperdomain.com without http://).',
             'instructions.min' => 'Please provide at least 10 characters of instructions for better email generation.',
         ]);
 
-        // Clean up the domain
-        $domain = strtolower(trim($validated['target_domain']));
-        $domain = preg_replace('/^(https?:\/\/)?(www\.)?/', '', $domain);
-        $domain = rtrim($domain, '/');
+        $ownedDomain = strtolower(trim($validated['owned_domain']));
+        $targetWebsite = isset($validated['target_website']) ? strtolower(trim($validated['target_website'])) : null;
+        
+        // Parse target emails from textarea (comma or newline separated)
+        $targetEmails = [];
+        if (!empty($validated['target_emails'])) {
+            $rawEmails = preg_split('/[\s,]+/', $validated['target_emails'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($rawEmails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $targetEmails[] = [
+                        'email' => $email,
+                        'prefix' => explode('@', $email)[0],
+                        'category' => 'custom',
+                    ];
+                }
+            }
+        }
 
-        $emailCount = $validated['email_count'] ?? 5;
-
-        // Generate target emails
-        $targetEmails = $this->geminiService->generateTargetEmails($domain, $emailCount);
+        // If no emails provided, fall back to a generic bulk template indicator
+        if (empty($targetEmails)) {
+            $targetEmails[] = [
+                'email' => 'General / Bulk Template',
+                'prefix' => 'generic',
+                'category' => 'bulk',
+            ];
+        } else {
+            // Apply randomized limit if provided emails exceed max_emails
+            $maxEmails = (int) $validated['max_emails'];
+            if (count($targetEmails) > $maxEmails) {
+                shuffle($targetEmails);
+                $targetEmails = array_slice($targetEmails, 0, $maxEmails);
+            }
+        }
 
         try {
             // Call Gemini API
             $result = $this->geminiService->generateEmail([
-                'domain' => $domain,
+                'owned_domain' => $ownedDomain,
+                'target_website' => $targetWebsite,
                 'instructions' => $validated['instructions'],
-                'product_service' => $validated['product_service'] ?? '',
                 'tone' => $validated['tone'],
                 'target_emails' => $targetEmails,
+                'max_emails' => (int) $validated['max_emails'],
             ]);
 
             // Save to database
-            $email = GeneratedEmail::create([
-                'target_domain' => $domain,
+            $emailRecord = GeneratedEmail::create([
+                'target_domain' => $targetWebsite ?? 'N/A',
+                'owned_domain' => $validated['owned_domain'],
+                'target_website' => $validated['target_website'] ?? null,
                 'target_emails' => $targetEmails,
                 'user_instructions' => $validated['instructions'],
-                'product_service' => $validated['product_service'] ?? null,
                 'tone' => $validated['tone'],
                 'system_prompt' => $result['system_prompt'],
                 'full_prompt_sent' => $result['full_prompt'],
-                'generated_subject' => $result['subject'],
-                'generated_body' => $result['body'],
+                'generated_variants' => $result['variants'],
+                // Fallbacks so legacy queries don't break immediately
+                'generated_subject' => $result['variants'][0]['subject'] ?? '',
+                'generated_body' => $result['variants'][0]['body'] ?? '',
                 'gemini_model' => $result['model'],
                 'tokens_used' => $result['tokens_used'],
                 'generation_time_ms' => $result['generation_time_ms'],
             ]);
 
-            return redirect()->route('email.result', $email->id)
+            return redirect()->route('email.result', $emailRecord->id)
                 ->with('success', 'Email generated successfully!');
 
         } catch (\RuntimeException $e) {
@@ -117,10 +146,10 @@ class EmailGeneratorController extends Controller
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('target_domain', 'like', "%{$search}%")
+                $q->where('owned_domain', 'like', "%{$search}%")
+                  ->orWhere('target_website', 'like', "%{$search}%")
                   ->orWhere('generated_subject', 'like', "%{$search}%")
-                  ->orWhere('generated_body', 'like', "%{$search}%")
-                  ->orWhere('product_service', 'like', "%{$search}%");
+                  ->orWhere('generated_body', 'like', "%{$search}%");
             });
         }
 

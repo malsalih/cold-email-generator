@@ -11,17 +11,17 @@
             Powered by Gemini AI
         </div>
         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">
-            <span class="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">Forge Cold Emails</span>
+            <span class="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">Sell Premium Domains</span>
             <br>
-            <span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">That Actually Land</span>
+            <span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">With AI precision</span>
         </h1>
         <p class="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Generate hyper-personalized, anti-spam cold emails that bypass filters and land in the primary inbox. Every email is crafted with deliverability in mind.
+            Generate hyper-personalized, anti-spam cold emails to pitch and sell your high-value domain names to the perfect buyers.
         </p>
     </div>
 
     {{-- Main Form --}}
-    <form action="{{ route('email.generate') }}" method="POST" class="space-y-6" x-data="emailForm()">
+    <form action="{{ route('email.generate') }}" method="POST" class="space-y-6" x-data="emailForm()" @submit="isLoading = true">
         @csrf
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -34,36 +34,32 @@
                             <svg class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
                         </div>
                         <div>
-                            <h2 class="text-sm font-semibold text-white">Target Domain</h2>
-                            <p class="text-xs text-zinc-500">The company you want to reach out to</p>
+                            <h2 class="text-sm font-semibold text-white">Owned Domain</h2>
+                            <p class="text-xs text-zinc-500">The premium domain you are selling</p>
                         </div>
                     </div>
 
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span class="text-zinc-500 text-sm font-mono">@</span>
-                        </div>
                         <input type="text"
-                               name="target_domain"
-                               id="target_domain"
-                               value="{{ old('target_domain') }}"
-                               placeholder="eagnt.com"
-                               x-model="domain"
-                               class="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white placeholder-zinc-500 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                               name="owned_domain"
+                               id="owned_domain"
+                               value="{{ old('owned_domain') }}"
+                               placeholder="e.g., superai.com"
+                               class="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white placeholder-zinc-500 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                                required>
                     </div>
-                    @error('target_domain')
+                    @error('owned_domain')
                         <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
                     @enderror
 
-                    {{-- Email count slider --}}
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs text-zinc-400">Number of target emails</label>
-                            <span class="text-xs font-mono text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md" x-text="emailCount"></span>
+                    {{-- Target Website --}}
+                    <div class="space-y-2 mt-4 pt-4 border-t border-zinc-800">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-white">Target Website (Optional)</label>
+                            <span class="text-[11px] text-zinc-500">The prospect's current, inferior domain</span>
                         </div>
-                        <input type="range" name="email_count" min="3" max="10" x-model="emailCount"
-                               class="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
+                        <input type="text" name="target_website" value="{{ old('target_website') }}" placeholder="e.g., super-ai-tech.net"
+                               class="w-full px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white placeholder-zinc-500 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all">
                     </div>
                 </div>
 
@@ -89,34 +85,43 @@
                         <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
                     @enderror
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-3">
                         <div class="space-y-2">
-                            <label for="product_service" class="text-xs font-medium text-zinc-400">Product / Service</label>
-                            <input type="text"
-                                   name="product_service"
-                                   id="product_service"
-                                   value="{{ old('product_service') }}"
-                                   placeholder="e.g., AI Customer Support Platform"
-                                   class="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all">
+                            <label for="target_emails" class="text-xs font-medium text-zinc-400">Target Emails (Optional, comma or newline separated for bulk)</label>
+                            <textarea name="target_emails"
+                                      id="target_emails"
+                                      rows="2"
+                                      placeholder="ceo@company.com, marketing@company.com"
+                                      class="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all resize-none">{{ old('target_emails') }}</textarea>
                         </div>
-                        <div class="space-y-2">
-                            <label for="tone" class="text-xs font-medium text-zinc-400">Email Tone</label>
-                            <select name="tone"
-                                    id="tone"
-                                    class="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all appearance-none cursor-pointer">
-                                @foreach($tones as $value => $label)
-                                    <option value="{{ $value }}" {{ old('tone', 'professional') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
+                        
+                        {{-- Random Email Limit Slider --}}
+                        <div class="space-y-2 pt-2 border-t border-zinc-800/50">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-zinc-400">Randomly select up to X emails from the list above</label>
+                                <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md" x-text="maxEmails"></span>
+                            </div>
+                            <input type="range" name="max_emails" min="1" max="50" x-model="maxEmails"
+                                   class="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
                         </div>
+                    </div>
+                    
+                    <div class="space-y-2 pt-2">
+                        <label for="tone" class="text-xs font-medium text-zinc-400">Email Tone</label>
+                        <select name="tone"
+                                id="tone"
+                                class="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all appearance-none cursor-pointer">
+                            @foreach($tones as $value => $label)
+                                <option value="{{ $value }}" {{ old('tone', 'professional') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
                 {{-- Submit --}}
                 <button type="submit"
                         class="w-full relative group overflow-hidden rounded-xl py-3.5 px-6 font-semibold text-sm transition-all duration-300"
-                        :disabled="isLoading"
-                        @click="isLoading = true">
+                        :disabled="isLoading">
                     <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 group-hover:opacity-90 transition-opacity"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 blur-xl opacity-50 group-hover:opacity-70 transition-opacity"></div>
                     <span class="relative flex items-center justify-center gap-2 text-white">
@@ -200,8 +205,7 @@
 <script>
 function emailForm() {
     return {
-        domain: '{{ old("target_domain", "") }}',
-        emailCount: {{ old('email_count', 5) }},
+        maxEmails: {{ old('max_emails', 5) }},
         isLoading: false,
     }
 }

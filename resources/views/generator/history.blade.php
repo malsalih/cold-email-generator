@@ -50,7 +50,7 @@
                     {{-- Domain badge --}}
                     <div class="flex items-center justify-between">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-[11px] font-mono text-violet-400">
-                            {{ $email->target_domain }}
+                            {{ $email->owned_domain }}
                         </span>
                         <span class="text-[11px] text-zinc-500">{{ $email->created_at->diffForHumans() }}</span>
                     </div>
@@ -69,7 +69,11 @@
                     <div class="flex items-center gap-3 pt-2 border-t border-zinc-800/50">
                         <span class="text-[11px] text-zinc-500 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-                            {{ count($email->target_emails) }} targets
+                            @if(is_array($email->generated_variants))
+                                {{ count($email->generated_variants) }} unique variant(s)
+                            @else
+                                {{ count($email->target_emails ?? []) }} target(s)
+                            @endif
                         </span>
                         <span class="text-[11px] text-zinc-500 capitalize flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" /></svg>

@@ -10,6 +10,8 @@ class GeneratedEmail extends Model
     use HasFactory;
 
     protected $fillable = [
+        'owned_domain',
+        'target_website',
         'target_domain',
         'target_emails',
         'user_instructions',
@@ -17,6 +19,7 @@ class GeneratedEmail extends Model
         'tone',
         'system_prompt',
         'full_prompt_sent',
+        'generated_variants',
         'generated_subject',
         'generated_body',
         'gemini_model',
@@ -28,6 +31,7 @@ class GeneratedEmail extends Model
 
     protected $casts = [
         'target_emails' => 'array',
+        'generated_variants' => 'array',
         'tokens_used' => 'integer',
         'generation_time_ms' => 'float',
     ];
@@ -37,7 +41,9 @@ class GeneratedEmail extends Model
      */
     public function scopeForDomain($query, string $domain)
     {
-        return $query->where('target_domain', $domain);
+        return $query->where('target_domain', $domain)
+                     ->orWhere('owned_domain', $domain)
+                     ->orWhere('target_website', $domain);
     }
 
     /**
@@ -53,6 +59,10 @@ class GeneratedEmail extends Model
      */
     public function getBodyPreviewAttribute(): string
     {
+        if (!empty($this->generated_variants) && is_array($this->generated_variants)) {
+            $firstVariant = $this->generated_variants[0];
+            return \Illuminate\Support\Str::limit($firstVariant['body'] ?? '', 120);
+        }
         return \Illuminate\Support\Str::limit($this->generated_body, 120);
     }
 }

@@ -77,12 +77,15 @@
                         <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">Subject</span>
                         <span class="text-sm text-white font-medium">{{ $variant['subject'] ?? 'No Subject' }}</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">To</span>
+                    <div class="flex items-start gap-2">
+                        <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0 mt-0.5">To</span>
                         <div class="flex flex-wrap gap-1.5">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-700/50 text-[11px] font-mono text-zinc-300">
-                                {{ $variant['target_email'] ?? 'Unknown' }}
-                            </span>
+                            @foreach(($variant['target_emails'] ?? [$variant['target_email'] ?? 'Unknown']) as $ve)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-700/50 text-[11px] font-mono text-zinc-300">{{ $ve }}</span>
+                            @endforeach
+                            @if(count($variant['target_emails'] ?? []) > 1)
+                            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">{{ count($variant['target_emails']) }} recipients</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -90,7 +93,7 @@
             <div class="px-6 py-6">
                 <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-300 leading-relaxed bg-transparent border-0 p-0 m-0" id="email-body-{{ $index }}">{{ $variant['body'] ?? '' }}</pre>
             </div>
-            <div class="bg-zinc-800/30 border-t border-zinc-700/30 px-6 py-4">
+            <div class="bg-zinc-800/30 border-t border-zinc-700/30 px-6 py-4 flex flex-wrap items-center gap-3">
                 <button @click="
                     const subject = @js($variant['subject'] ?? '');
                     const body = document.getElementById('email-body-{{ $index }}').innerText;
@@ -115,6 +118,57 @@
                         </span>
                     </template>
                 </button>
+
+                @if($accounts->isEmpty())
+                    <a href="{{ route('warming.accounts') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-xl hover:bg-orange-500/20 transition-all">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Add Sending Account
+                    </a>
+                @else
+                    @if($email->sending_status === 'sent')
+                        <span class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                            Sent Successfully
+                        </span>
+                    @elseif($email->sending_status === 'queued' || $email->sending_status === 'sending')
+                        <span class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                            Sending Queued...
+                        </span>
+                    @else
+                        {{-- Quick Campaign Button --}}
+                        <div class="relative" x-data="{ showModal: false }">
+                            <button @click="showModal = !showModal" @click.away="showModal = false" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:opacity-90 shadow-lg shadow-cyan-500/20">
+                                🚀 Quick Campaign
+                            </button>
+                            <div x-show="showModal" x-transition class="absolute bottom-full left-0 mb-2 w-72 bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-2xl z-50">
+                                <form action="{{ route('email.quick_campaign', $email->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="variant_index" value="{{ $index }}">
+                                    <div class="px-3 py-2 text-xs font-semibold text-zinc-400 bg-zinc-900/50 border-b border-zinc-700 uppercase tracking-wider">
+                                        Select Accounts (Send Later)
+                                    </div>
+                                    <div class="p-3 space-y-2 max-h-48 overflow-y-auto">
+                                        @foreach($accounts as $acc)
+                                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-700/30 cursor-pointer">
+                                            <input type="checkbox" name="account_ids[]" value="{{ $acc->id }}" checked class="w-4 h-4 text-cyan-500 bg-zinc-900 border-zinc-700 rounded">
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-medium text-white truncate">{{ $acc->display_name }}</p>
+                                                <p class="text-[10px] text-zinc-500 font-mono truncate">{{ $acc->email }}</p>
+                                            </div>
+                                        </label>
+                                        @endforeach
+                                    </div>
+                                    <div class="px-3 py-2 border-t border-zinc-700">
+                                        <button type="submit" class="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:opacity-90">
+                                            📅 Create Send Later Campaign
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+                @endif
             </div>
         </div>
         @endforeach

@@ -1,153 +1,179 @@
-# ⚡ ColdForge — Domain Sales Engine & ML Spam Defense
+# ColdForge AI — Cold Email & Warming System v4.0
 
-A full-stack Laravel web application that generates highly optimized, **anti-spam cold emails** using the **Google Gemini API**, and rigorously verifies them using a **custom Python Machine Learning Microservice**. Built with a premium dark UI, adaptive ML scoring, and full email history tracking.
+> **100% Offline** AI-powered cold email generation and email warming system with safety-first bot architecture.
 
-![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_API-2.0_Flash-4285F4?style=flat-square&logo=google&logoColor=white)
-![Python](https://img.shields.io/badge/Python-Flask_ML-3776AB?style=flat-square&logo=python&logoColor=white)
-![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Model-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+## 🏗️ Architecture
 
----
-
-## ✨ Features
-
-### 🛡️ ML-Powered Spam Defense & Correction
-- **Local AI Classification**: A `MultinomialNB` model (trained on 136k emails) analyzes Gemini's drafts and assigns a Spam Probability score (0-100%).
-- **Feature-Weighted Dynamic Correction**: If the score exceeds 70%, the Flask microservice analyzes which *specific words* contributed most to the spam classification and automatically replaces them with grammatically correct B2B synonyms (e.g., `guaranteed` → `well-positioned`, `purchase` → `explore`).
-- **Gmail RETVec Protection**: Uses a 5-layer pipeline to fix excessive punctuation (`!!!` → `.`), kill URL shorteners, correct SHOUTING caps, and repair broken merge tags before the email is finalized.
-- **Protected Vocabulary**: Core business terminology (`domain`, `company`, `acquire`, `strategy`) is strictly protected from deletion to preserve message integrity.
-
-### 🎯 Domain Sales & Variant Tracking
-- **Multi-Variant Generation**: Generate 1, 5, 10, or 20 distinct permutations of an email in a single click.
-- **Diff Comparison**: The UI visualizes the Before/After Spam Score (e.g., `Gemini 94% ➔ Fixed 32%`) and lets you toggle a "View Original" diff to see exactly what the ML engine altered.
-
-### 📊 History & Testing
-- Every generated email is saved with full metadata (Was Spam?, Before Score, After Score).
-- Copy-to-Clipboard integration for immediate sending.
-
-### 🎨 Premium Dark UI
-- Built with **Tailwind CSS 4** + **Alpine.js**.
-- Custom probability meters and status badges (ML Verified vs ML Corrected).
-- Glassmorphism effects with ambient gradient glows.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Backend API** | Laravel 13 (PHP 8.2+) |
-| **Frontend** | Blade Templates + Tailwind CSS 4 + Alpine.js |
-| **ML Microservice** | Python 3 + Flask + Scikit-Learn |
-| **AI Generation**| Google Gemini API (gemini-2.0-flash) |
-| **Database** | SQLite (default) / MySQL |
-
----
-
-## 🚀 Quick Setup
-
-### Prerequisites
-
-Make sure you have installed:
-- **PHP 8.2+** with Composer
-- **Node.js 18+** with npm
-- **Python 3.10+** (For the ML microservice)
-
-### Step 1: Clone the Repository
-
-```bash
-git clone https://github.com/malsalih/cold-email-generator.git
-cd cold-email-generator
+```
+┌─────────────────────────────────────────────────────┐
+│                  Laravel (PHP 8.3)                   │
+│  Dashboard ← Controllers ← Models ← Database (SQLite)│
+│     ↕ API                                            │
+│  Warming Bot (Node.js/Puppeteer)                     │
+│     ↕ POST/GET                                       │
+│  ML Service (Python/Flask)                           │
+│     • Spam Filter (joblib model)                     │
+│     • Text Generator (Markovify chains)              │
+└─────────────────────────────────────────────────────┘
 ```
 
-### Step 2: Setup Laravel (PHP/Node)
+## 🚀 Quick Start
 
 ```bash
+# 1. Install dependencies
 composer install
 npm install
+cd warming_bot && npm install && cd ..
+pip install flask joblib scikit-learn markovify unidecode
+
+# 2. Setup database
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
+
+# 3. Start all services
+start_servers.bat
 ```
 
-Open `.env` and add your Gemini API key:
-```env
-GEMINI_API_KEY=your-api-key-here
-GEMINI_MODEL=gemini-2.0-flash
-```
-
-### Step 3: Setup ML Microservice (Python)
-
-The core spam classification logic runs on a dedicated Flask port.
-
-```bash
-cd ml_service
-python -m venv .venv
-
-# Windows
-.\.venv\Scripts\activate
-# Mac/Linux
-source .venv/bin/activate
-
-pip install flask scikit-learn pandas requests joblib
-```
-
----
-
-## 🚦 Starting the Services
-
-You need **three terminal windows** to run the complete stack:
-
-**Terminal 1 — Vite (Frontend Assets):**
-```bash
-npm run dev
-```
-
-**Terminal 2 — Laravel Server:**
-```bash
-php artisan serve
-```
-
-**Terminal 3 — ML Microservice:**
-```bash
-cd ml_service
-.\.venv\Scripts\activate
-python app.py
-```
-*(The Flask server must be running on port 5000 for Laravel to perform spam corrections).*
-
-Navigate to: **http://127.0.0.1:8000**
-
----
-
-## 📝 How It Works
-
-1. **User Prompt**: You input a Target Domain and instructions.
-2. **LLM Generation**: Laravel sends an anti-spam engineered prompt to the Gemini API, requesting multiple unique variants.
-3. **ML Interception**: Laravel catches Gemini's response and forwards the drafts to the complete `http://127.0.0.1:5000/correct` Flask endpoint.
-4. **Scoring & Rewriting**: The Python script transforms text into TF-IDF vectors, runs it through the Naive Bayes model, scores the spam probability, and structurally rewrites problematic words if the score exceeds 70%.
-5. **UI Delivery**: The final, sanitized emails are saved to the database and presented in the UI alongside visual meters indicating how much intervention was required.
-
----
-
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 cold-email-generator/
 ├── app/
+│   ├── Console/Commands/
+│   │   └── GenerateWarmingTemplates.php  # Local ML template generator
 │   ├── Http/Controllers/
-│   │   └── EmailGeneratorController.php   # Handles Form/Max Variants logic
-│   └── Services/
-│       └── GeminiService.php              # Communicates with Gemini API & Python API
+│   │   ├── WarmingController.php         # Dashboard, accounts, daily rounds
+│   │   ├── WarmingApiController.php      # Bot API (jobs, reports, monitoring)
+│   │   ├── CampaignController.php        # Campaign management
+│   │   └── EmailGeneratorController.php  # Cold email generator
+│   └── Models/
+│       ├── WarmingAccount.php    # Email accounts with session tracking
+│       ├── WarmingLog.php        # Send logs (pending→processing→sent/failed)
+│       ├── WarmingTemplate.php   # AI-generated email templates (single-use)
+│       ├── WarmingStrategy.php   # Gradual warm-up schedules
+│       ├── WarmingRecipient.php  # Saved warming recipients
+│       ├── WarmingSetting.php    # System settings (send_mode, etc.)
+│       └── BotLog.php           # Real-time bot activity tracking
+├── warming_bot/
+│   └── bot.js                   # Puppeteer bot v4.0 (safety-first)
 ├── ml_service/
-│   ├── app.py                             # Flask ML API (Correction Pipeline)
-│   ├── spam_model.pkl                     # Pre-trained Scikit-learn MultinomialNB Model
-│   ├── vectorizer.pkl                     # TF-IDF Vector Vocabulary
-│   └── spam_dataset.csv                   # Curated Ham/Spam Training Data
-├── resources/
-│   └── views/generator/
-│       ├── result.blade.php               # Result UI with Diff/Score features
-│       └── index.blade.php                # Master Generator Form
-└── README.md
+│   ├── app.py                   # Flask API (spam filter + text generator)
+│   ├── spam_dataset.csv         # Training data (HAM/SPAM emails)
+│   └── model/                   # Trained joblib model files
+├── resources/views/warming/
+│   ├── dashboard.blade.php      # Main dashboard with live bot monitor
+│   ├── accounts.blade.php       # Account management
+│   ├── templates.blade.php      # Template management
+│   ├── strategies.blade.php     # Strategy configuration
+│   ├── logs.blade.php           # Send log viewer
+│   └── settings.blade.php       # System settings
+└── start_servers.bat            # One-click startup script
+```
+
+## 🔥 Email Warming System
+
+### How It Works
+
+1. **Add Accounts** — Add your Zoho Mail accounts and login via browser
+2. **Save Recipients** — Store warming target emails for reuse
+3. **Start Daily Round** — One click to schedule today's warming emails
+4. **Bot Executes** — Puppeteer bot opens Zoho Mail and fills compose
+5. **You Review** — In manual mode, you click Send for each email
+6. **Track Progress** — Real-time monitoring on the dashboard
+
+### Warming Strategy
+
+The default strategy gradually increases sends over 30 days:
+
+| Days | Daily Sends |
+|------|-------------|
+| 1-3  | 2           |
+| 4-7  | 5           |
+| 8-14 | 10          |
+| 15-21| 15          |
+| 22-30| 20          |
+| 31+  | 25          |
+
+### Safety Guards
+
+| Guard | Description |
+|-------|-------------|
+| **Manual Mode** | Bot fills fields but never clicks Send without you |
+| **Field Verification** | Verifies all fields are filled before proceeding |
+| **Job Verification** | Double-checks with server before every send |
+| **Processing Lock** | Jobs marked `processing` can't be picked twice |
+| **Stale Recovery** | Stuck jobs auto-reset after 10 minutes |
+| **Failure Limit** | 5 consecutive failures → emergency stop |
+| **Session Limit** | Max 50 emails per bot session |
+| **Daily Limit** | Max 100 emails per account per day |
+| **Duplicate Prevention** | Can't schedule same recipient twice if pending |
+
+## 🤖 ML Service (Port 5050)
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/predict` | Check if text is spam (returns probability) |
+| POST | `/generate` | Generate clean email text (pre-filtered) |
+
+### How Generation Works
+
+1. Builds Markov chain model from HAM emails in `spam_dataset.csv`
+2. Generates random subject + body using the chain
+3. Checks spam probability using the trained classifier
+4. Only returns text with spam probability ≤ 50%
+5. Retries up to 30 times internally for clean output
+
+## 📡 Bot Live Monitor
+
+The dashboard shows real-time bot status:
+- **Online indicator** (green/gray dot with pulse animation)
+- **Session stats** (sent count, failed count)
+- **Detailed log** button showing every bot action
+- **Auto-refresh** every 5 seconds via AJAX
+
+## 🛠️ API Endpoints
+
+### Bot API (`/api/warming/`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/next-job` | Get next pending job (marks as processing) |
+| POST | `/report` | Report send result (sent/failed) |
+| GET | `/verify-job/{id}` | Verify job validity before send |
+| POST | `/bot-log` | Push real-time bot event |
+| GET | `/bot-status` | Get bot status for dashboard |
+| GET | `/settings` | Get current send mode |
+| POST | `/mark-logged-in` | Mark account as logged in |
+
+## ⚙️ Send Modes
+
+| Mode | Behavior |
+|------|----------|
+| `auto` | Bot fills fields and clicks Send automatically |
+| `manual_send` | Bot fills fields, waits for you to click Send |
+| `full_manual` | Bot opens compose only, you do everything |
+
+> **Note:** Quick Start and Daily Round always use `manual_send` for safety.
+
+## 📋 Commands
+
+```bash
+# Generate warming templates locally
+php artisan warming:generate-templates 10
+
+# Reset daily counters (runs automatically via scheduler)
+php artisan warming:reset-daily
+```
+
+## 🔐 Environment
+
+No external API keys required for warming. The system is 100% offline.
+
+```env
+APP_ENV=local
+APP_DEBUG=true
+DB_CONNECTION=sqlite
 ```

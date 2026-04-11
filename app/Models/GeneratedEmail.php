@@ -9,6 +9,7 @@ class GeneratedEmail extends Model
 {
     use HasFactory;
 
+
     protected $fillable = [
         'owned_domain',
         'target_website',

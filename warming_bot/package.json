@@ -1,0 +1,16 @@
+{
+  "name": "coldforge-warming-bot",
+  "version": "3.0.0",
+  "description": "Persistent Puppeteer daemon for Zoho Mail automation (Free Tier Bypass)",
+  "scripts": {
+    "bot": "node bot.js --loop",
+    "bot:manual": "node bot.js --loop --manual",
+    "bot:once": "node bot.js --manual",
+    "bot:headless": "node bot.js --loop --headless",
+    "login": "node login.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0",
+    "axios": "^1.7.0"
+  }
+}

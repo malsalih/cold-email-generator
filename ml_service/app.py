@@ -2,23 +2,52 @@ from flask import Flask, request, jsonify
 import joblib
 import re
 import numpy as np
+import csv
+import markovify
+import os
 
 app = Flask(__name__)
+
+# Global generators
+text_model = None
+
+# Hard filter for completely blocking offensive content from the system
+OFFENSIVE_WORDS_PATTERN = re.compile(
+    r'\b(ass|asses|bitch|fuck|shits?|damn|crap|dick|pussy|whore|slut|bastard|cunt|idiot|stupids?|retard|nigga|nigger|fagg?ot|cock|boobs?|tits?|porn|sex|scam)\b',
+    re.IGNORECASE
+)
 
 try:
     vectorizer = joblib.load('vectorizer.pkl')
     model = joblib.load('spam_model.pkl')
     print("--- ML Spam Model API Booted Successfully ---")
 
-    # Pre-compute: get the vocabulary and feature log-probabilities
-    # This lets us identify WHICH words drive the spam classification
+    # Pre-compute vocabulary for corrections
     feature_names = vectorizer.get_feature_names_out()
-    # Higher value = more associated with spam
     spam_scores = model.feature_log_prob_[1] - model.feature_log_prob_[0]
-    # Build a dict: word -> spam_contribution_score
     word_spam_scores = dict(zip(feature_names, spam_scores))
-
     print(f"Loaded vocabulary of {len(feature_names)} features for smart correction.")
+    
+    # Load and build Markovify Local Text Generator Model
+    csv_path = 'spam_dataset.csv'
+    if os.path.exists(csv_path):
+        print("--- Building Local Text Generator from Corpus ---")
+        ham_texts = []
+        with open(csv_path, 'r', encoding='latin-1') as f:
+            reader = csv.reader(f)
+            next(reader, None) # skip header
+            for row in reader:
+                if len(row) >= 2 and row[0].strip().lower() == 'ham':
+                    text_content = row[1]
+                    # Never train the model on ham emails containing profanity
+                    if not OFFENSIVE_WORDS_PATTERN.search(text_content):
+                        ham_texts.append(text_content)
+        
+        # Build generator structure
+        combined_text = " ".join(ham_texts)
+        text_model = markovify.Text(combined_text, state_size=2)
+        print(f"--- Text Generator Built from {len(ham_texts)} HAM emails ---")
+        
 except Exception as e:
     print(f"Error loading models: {e}")
     word_spam_scores = {}
@@ -367,6 +396,61 @@ def correct():
         'variants': corrected,
         'total_corrections': total_corrections,
     })
+
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    if not text_model:
+        return jsonify({'success': False, 'error': 'Local Generator Model is not initialized.'}), 500
+        
+    try:
+        # Try up to 30 times to produce clean (non-spam) text
+        for attempt in range(30):
+            # Generate a short subject (2-5 words)
+            subject = None
+            for _ in range(50):
+                sent = text_model.make_short_sentence(50, min_chars=8)
+                if sent and len(sent.split()) >= 2:
+                    subject = sent
+                    break
+                    
+            # Generate a body (2-4 sentences)
+            body_sentences = []
+            for _ in range(150):
+                sent = text_model.make_sentence(min_chars=15)
+                if sent and len(sent.split()) >= 4:
+                    body_sentences.append(sent)
+                    if len(body_sentences) >= 3:
+                        break
+            
+            if not subject or len(body_sentences) < 2:
+                continue
+                
+            body = " ".join(body_sentences)
+            
+            # Pre-filter: check spam score locally before returning
+            combined = subject + " " + body
+            
+            # Immediately discard if it hallucinated offensive language
+            if OFFENSIVE_WORDS_PATTERN.search(combined):
+                continue
+                
+            text_vec = vectorizer.transform([combined])
+            proba = model.predict_proba(text_vec)[0]
+            spam_prob = float(proba[1])
+            
+            if spam_prob <= 0.5:
+                return jsonify({
+                    'success': True,
+                    'subject': subject,
+                    'body': body,
+                    'spam_probability': round(spam_prob * 100, 2)
+                })
+        
+        # All attempts produced spammy text
+        return jsonify({'success': False, 'error': 'Could not generate clean text after 30 attempts.'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

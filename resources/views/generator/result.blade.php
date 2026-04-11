@@ -4,23 +4,40 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-8">
-    {{-- Header --}}
+    {{-- Back & Actions --}}
     <div class="flex items-center justify-between">
-        <div class="space-y-1">
-            <h1 class="text-2xl font-bold text-white">Your Email is Ready</h1>
-            <p class="text-sm text-zinc-400">Generated for <span class="font-mono text-violet-400">{{ $email->owned_domain }}</span> in {{ number_format($email->generation_time_ms) }}ms</p>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('email.history') }}"
+               class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                Back to History
+            </a>
+            <div class="h-4 w-px bg-zinc-800"></div>
+            <p class="text-sm text-zinc-400">Generated for <span class="font-mono text-violet-400">{{ $email->owned_domain }}</span></p>
         </div>
-        <a href="{{ route('email.index') }}"
-           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl transition-all">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-            New Email
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('email.index') }}"
+               class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-lg transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                New Email
+            </a>
+            <form action="{{ route('email.destroy', $email->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this email record?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/30 rounded-lg transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    Delete
+                </button>
+            </form>
+        </div>
     </div>
 
     @php
         $variantsToDisplay = is_array($email->generated_variants) ? $email->generated_variants : [
             [
                 'target_email' => 'General Template',
+                'target_emails' => [],
                 'subject' => $email->generated_subject,
                 'body' => $email->generated_body,
                 'original_subject' => $email->generated_subject,
@@ -41,15 +58,14 @@
             $origBody = $variant['original_body'] ?? ($variant['body'] ?? '');
             $correctedSubject = $variant['subject'] ?? '';
             $correctedBody = $variant['body'] ?? '';
+            $variantEmails = $variant['target_emails'] ?? [$variant['target_email'] ?? 'Unknown'];
         @endphp
         {{-- Email Preview Card --}}
         <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl overflow-hidden" x-data="{ copied: false, showOriginal: false }">
 
             {{-- ML Status Banner --}}
-            <div class="px-6 py-3 border-b border-zinc-800/30 flex items-center justify-between
-                {{ $wasSpam ? 'bg-amber-500/5' : 'bg-emerald-500/5' }}">
+            <div class="px-6 py-3 border-b border-zinc-800/30 flex items-center justify-between {{ $wasSpam ? 'bg-amber-500/5' : 'bg-emerald-500/5' }}">
                 <div class="flex items-center gap-3 flex-wrap">
-                    {{-- Spam Badge --}}
                     @if($wasSpam)
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-xs font-semibold text-amber-400">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
@@ -62,163 +78,200 @@
                         </span>
                     @endif
 
-                    {{-- Spam Score: Before → After --}}
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Gemini</span>
+                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Score</span>
                         <span class="text-[11px] font-mono {{ $spamProb > 70 ? 'text-red-400' : ($spamProb > 40 ? 'text-amber-400' : 'text-emerald-400') }}">{{ $spamProb }}%</span>
                         @if($wasSpam)
                         <svg class="w-3 h-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Fixed</span>
                         <span class="text-[11px] font-mono {{ $correctedSpamProb > 70 ? 'text-red-400' : ($correctedSpamProb > 40 ? 'text-amber-400' : 'text-emerald-400') }}">{{ $correctedSpamProb }}%</span>
                         @endif
                     </div>
 
-                    {{-- Visual meter (uses corrected score if available) --}}
                     @php $displayProb = $wasSpam ? $correctedSpamProb : $spamProb; @endphp
-                    <div class="flex items-center gap-1.5">
-                        <div class="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-500
-                                {{ $displayProb > 70 ? 'bg-red-500' : ($displayProb > 40 ? 'bg-amber-500' : 'bg-emerald-500') }}"
-                                style="width: {{ min($displayProb, 100) }}%"></div>
-                        </div>
+                    <div class="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 {{ $displayProb > 70 ? 'bg-red-500' : ($displayProb > 40 ? 'bg-amber-500' : 'bg-emerald-500') }}"
+                            style="width: {{ min($displayProb, 100) }}%"></div>
                     </div>
                 </div>
 
-                {{-- View Original Button --}}
                 @if($wasSpam)
                 <button @click="showOriginal = !showOriginal"
                     class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-200"
                     :class="showOriginal ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'text-zinc-500 hover:text-zinc-300 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50'">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
-                    <span x-text="showOriginal ? 'Show Corrected' : 'View Gemini Original'"></span>
+                    <span x-text="showOriginal ? 'Show Corrected' : 'View Original'"></span>
                 </button>
                 @endif
             </div>
 
-            {{-- Email Header Bar --}}
+            {{-- Variant Header --}}
             <div class="bg-zinc-800/50 border-b border-zinc-700/30 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="space-y-2 flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">Subject</span>
-                            {{-- Corrected subject (default view) --}}
-                            <span x-show="!showOriginal" class="text-sm text-white font-medium">{{ $correctedSubject }}</span>
-                            {{-- Original subject (toggle view) --}}
-                            @if($wasSpam)
-                            <span x-show="showOriginal" x-cloak class="text-sm font-medium text-red-400/80 line-through">{{ $origSubject }}</span>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">Variant</span>
+                        <span class="text-xs font-mono text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md">#{{ $index + 1 }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">Subject</span>
+                        <span x-show="!showOriginal" class="text-sm text-white font-medium">{{ $correctedSubject }}</span>
+                        @if($wasSpam)
+                        <span x-show="showOriginal" x-cloak class="text-sm font-medium text-red-400/80 line-through">{{ $origSubject }}</span>
+                        @endif
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0 mt-0.5">To</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($variantEmails as $ve)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-700/50 text-[11px] font-mono text-zinc-300">{{ $ve }}</span>
+                            @endforeach
+                            @if(count($variantEmails) > 1)
+                            <span class="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">{{ count($variantEmails) }} recipients</span>
                             @endif
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-medium text-zinc-500 uppercase tracking-wider shrink-0">To</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-700/50 text-[11px] font-mono text-zinc-300">
-                                    {{ $variant['target_email'] ?? 'Unknown' }}
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Email Body: Corrected (default) --}}
+            {{-- Email Body --}}
             <div x-show="!showOriginal" class="px-6 py-6">
-                <div class="prose prose-invert prose-sm max-w-none">
-                    <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-300 leading-relaxed bg-transparent border-0 p-0 m-0" id="email-body-{{ $index }}">{{ $correctedBody }}</pre>
-                </div>
+                <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-300 leading-relaxed" id="email-body-{{ $index }}">{{ $correctedBody }}</pre>
             </div>
-
-            {{-- Email Body: Original Gemini (toggle view with diff highlights) --}}
             @if($wasSpam)
-            <div x-show="showOriginal" x-cloak class="px-6 py-6">
-                <div class="mb-3 flex items-center gap-2">
-                    <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Original Gemini Output</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[10px] text-red-400 font-medium">Before ML Correction</span>
+            <div x-show="showOriginal" x-cloak class="px-6 py-6 space-y-4">
+                <div class="bg-red-500/[0.03] border border-red-500/10 rounded-xl p-4">
+                    <pre class="whitespace-pre-wrap font-sans text-sm text-red-300/70 leading-relaxed">{{ $origBody }}</pre>
                 </div>
-                <div class="prose prose-invert prose-sm max-w-none bg-red-500/[0.03] border border-red-500/10 rounded-xl p-4">
-                    <pre class="whitespace-pre-wrap font-sans text-sm text-red-300/70 leading-relaxed bg-transparent border-0 p-0 m-0">{{ $origBody }}</pre>
-                </div>
-                <div class="mt-4 mb-2 flex items-center gap-2">
-                    <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Corrected Output</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium">After ML Correction</span>
-                </div>
-                <div class="prose prose-invert prose-sm max-w-none bg-emerald-500/[0.03] border border-emerald-500/10 rounded-xl p-4">
-                    <pre class="whitespace-pre-wrap font-sans text-sm text-emerald-300/70 leading-relaxed bg-transparent border-0 p-0 m-0">{{ $correctedBody }}</pre>
+                <div class="bg-emerald-500/[0.03] border border-emerald-500/10 rounded-xl p-4">
+                    <pre class="whitespace-pre-wrap font-sans text-sm text-emerald-300/70 leading-relaxed">{{ $correctedBody }}</pre>
                 </div>
             </div>
             @endif
 
-            {{-- Action Bar --}}
-            <div class="bg-zinc-800/30 border-t border-zinc-700/30 px-6 py-4 flex items-center gap-3">
+            {{-- Actions --}}
+            <div class="bg-zinc-800/30 border-t border-zinc-700/30 px-6 py-4 flex flex-wrap items-center gap-3">
+                {{-- Copy --}}
                 <button @click="
                     const subject = @js($correctedSubject);
                     const body = document.getElementById('email-body-{{ $index }}').innerText;
-                    const full = 'Subject: ' + subject + '\n\n' + body;
-                    navigator.clipboard.writeText(full).then(() => {
-                        copied = true;
-                        setTimeout(() => copied = false, 2000);
+                    navigator.clipboard.writeText('Subject: ' + subject + '\n\n' + body).then(() => {
+                        copied = true; setTimeout(() => copied = false, 2000);
                     });
                 "
                 class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200"
-                :class="copied ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/30 hover:border-violet-500/50'">
-                    <template x-if="!copied">
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
-                            Copy Full Email
-                        </span>
-                    </template>
-                    <template x-if="copied">
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            Copied!
-                        </span>
-                    </template>
+                :class="copied ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/30'">
+                    <span x-text="copied ? '✓ Copied!' : '📋 Copy Email'"></span>
                 </button>
 
-                <button @click="
-                    const body = document.getElementById('email-body-{{ $index }}').innerText;
-                    navigator.clipboard.writeText(body).then(() => { });
-                "
-                class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/50 rounded-xl transition-all">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z" /></svg>
-                    Body Only
-                </button>
-
-                <button @click="
-                    navigator.clipboard.writeText(@js($correctedSubject)).then(() => { });
-                "
-                class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/50 rounded-xl transition-all">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
-                    Subject Only
-                </button>
+                {{-- Quick Campaign --}}
+                @if($accounts->isNotEmpty() && $email->sending_status !== 'queued' && $email->sending_status !== 'sent')
+                <div class="relative" x-data="{ showModal: false }">
+                    <button @click="showModal = !showModal" @click.away="showModal = false" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:opacity-90 shadow-lg shadow-cyan-500/20 transition-all">
+                        🚀 Quick Campaign
+                    </button>
+                    <div x-show="showModal" x-transition class="absolute bottom-full left-0 mb-2 w-72 bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-2xl z-50">
+                        <form action="{{ route('email.quick_campaign', $email->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="variant_index" value="{{ $index }}">
+                            <div class="px-3 py-2 text-xs font-semibold text-zinc-400 bg-zinc-900/50 border-b border-zinc-700 uppercase tracking-wider">
+                                Select Accounts (Send Later)
+                            </div>
+                            <div class="p-3 space-y-2 max-h-48 overflow-y-auto">
+                                @foreach($accounts as $acc)
+                                <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-700/30 cursor-pointer">
+                                    <input type="checkbox" name="account_ids[]" value="{{ $acc->id }}" checked class="w-4 h-4 text-cyan-500 bg-zinc-900 border-zinc-700 rounded">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-medium text-white truncate">{{ $acc->display_name }}</p>
+                                        <p class="text-[10px] text-zinc-500 font-mono truncate">{{ $acc->email }}</p>
+                                    </div>
+                                </label>
+                                @endforeach
+                            </div>
+                            <div class="px-3 py-2 border-t border-zinc-700">
+                                <button type="submit" class="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:opacity-90">
+                                    📅 Create Send Later Campaign
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @elseif($email->sending_status === 'queued')
+                <span class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl">⏳ Campaign Created</span>
+                @endif
             </div>
         </div>
         @endforeach
     </div>
 
+    {{-- Create Campaign from ALL Variants --}}
+    @if(count($variantsToDisplay) > 1 && $accounts->isNotEmpty() && $email->sending_status !== 'queued')
+    <div class="bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 border border-violet-500/20 backdrop-blur-sm rounded-2xl p-6" x-data="{ showAccounts: false }">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                    🎯 إنشاء حملة من جميع الرسائل ({{ count($variantsToDisplay) }} variants)
+                </h3>
+                <p class="text-xs text-zinc-400 mt-1">كل مجموعة زبائن ستستلم رسالتها المخصصة عبر Send Later</p>
+            </div>
+            <button @click="showAccounts = !showAccounts" class="px-4 py-2 text-sm font-medium rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90 shadow-lg shadow-violet-500/20 transition-all">
+                🚀 إنشاء حملة متعددة
+            </button>
+        </div>
+        <div x-show="showAccounts" x-transition class="mt-4 border-t border-violet-500/20 pt-4">
+            <form action="{{ route('email.campaign_from_variants', $email->id) }}" method="POST" class="space-y-3">
+                @csrf
+                <p class="text-xs text-zinc-400">اختر حسابات الإرسال:</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    @foreach($accounts as $acc)
+                    <label class="flex items-center gap-2 p-2 rounded-lg border border-zinc-700/50 bg-zinc-800/20 cursor-pointer hover:bg-zinc-800/50 has-[:checked]:border-violet-500/50 has-[:checked]:bg-violet-500/10 transition-all">
+                        <input type="checkbox" name="account_ids[]" value="{{ $acc->id }}" checked class="w-4 h-4 text-violet-500 bg-zinc-900 border-zinc-700 rounded">
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-white truncate">{{ $acc->display_name }}</p>
+                            <p class="text-[10px] text-zinc-500 truncate">{{ $acc->email }}</p>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+                <button type="submit" class="w-full px-4 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90 transition-opacity">
+                    📅 إنشاء حملة — {{ count($variantsToDisplay) }} رسائل مختلفة
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
     {{-- Metadata --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5 text-center">
             <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Model</p>
             <p class="text-sm font-mono text-cyan-400">{{ $email->gemini_model }}</p>
         </div>
         <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5 text-center">
-            <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Tokens Used</p>
+            <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Tokens</p>
             <p class="text-sm font-mono text-violet-400">{{ number_format($email->tokens_used ?? 0) }}</p>
+        </div>
+        <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5 text-center">
+            <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Time</p>
+            <p class="text-sm text-zinc-300 font-mono">{{ number_format($email->generation_time_ms) }}ms</p>
         </div>
         <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5 text-center">
             <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Tone</p>
             <p class="text-sm text-fuchsia-400 capitalize">{{ $email->tone }}</p>
         </div>
     </div>
+    
+    @if($email->target_website)
+    <div class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5">
+        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Prospect Website</p>
+        <p class="text-sm text-zinc-300 font-mono">{{ $email->target_website }}</p>
+    </div>
+    @endif
 
-    {{-- Prompt Used (Collapsible) --}}
+    {{-- Prompt Used --}}
     <details class="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl overflow-hidden group">
         <summary class="px-6 py-4 cursor-pointer select-none flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
             <span class="flex items-center gap-2 text-sm font-medium text-zinc-400">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
                 View Prompt Sent to Gemini
             </span>
-            <svg class="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
         </summary>
         <div class="px-6 pb-6 border-t border-zinc-800/50 pt-4">
             <pre class="whitespace-pre-wrap text-xs text-zinc-400 font-mono leading-relaxed bg-zinc-800/30 rounded-xl p-4 max-h-80 overflow-y-auto">{{ $email->full_prompt_sent }}</pre>

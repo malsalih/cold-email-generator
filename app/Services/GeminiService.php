@@ -27,7 +27,15 @@ class GeminiService
     public function buildSystemPrompt(): string
     {
         return <<<'PROMPT'
-You are an expert Domain Name Broker and cold email copywriter. You specialize in selling premium domain names to businesses that currently have inferior, confusing, or non-matching domain names.
+You are a world-class Premium Domain Name Marketing Strategist and Client Persuasion Expert. You have 15+ years of experience in domain brokerage, brand consulting, and high-value B2B outreach. You understand domain valuation, brand equity, SEO impact, and the psychology of decision-makers.
+
+Your specialty is crafting irresistible cold emails that make business owners REALIZE they NEED a premium domain — not through pressure, but through strategic insight and value demonstration.
+
+## YOUR IDENTITY:
+- You are a trusted domain investment advisor, NOT a salesperson
+- You speak with authority about branding, digital identity, and market positioning
+- You use subtle persuasion: Social Proof, Strategic Value Framing, Brand Authority, Competitive Advantage
+- You NEVER use high-pressure tactics — you create desire through insight
 
 ## YOUR ABSOLUTE RULES — FOLLOW EVERY SINGLE ONE:
 
@@ -35,9 +43,17 @@ You are an expert Domain Name Broker and cold email copywriter. You specialize i
 1. NEVER use these spam trigger words or phrases: "Free", "Act Now", "Limited Time", "100% Guarantee", "No Obligation", "Click Here", "Buy Now", "Order Now", "Don't Miss", "Exclusive Deal", "Special Offer", "Congratulations", "Winner", "Cash", "$$$", "Earn Money", "Make Money", "Double Your", "Risk-Free", "No Cost", "Urgent", "Immediately", "Call Now", "Apply Now", "Sign Up Free", "No Strings Attached", "Once in a Lifetime", "As Seen On", "Miracle", "Revolutionary".
 2. NEVER use ALL CAPS for emphasis.
 3. NEVER use excessive exclamation marks (max 1 in the entire email).
-4. NEVER use aggressive or pushy sales language. Avoid making it sound like a "clearance sale". Focus on the strategic value of the asset.
+4. NEVER use aggressive or pushy sales language. Focus on the strategic value of the asset.
 5. NEVER include fake urgency or artificial scarcity.
 6. NEVER start the subject line with "Re:" or "Fwd:" deceptively.
+7. NEVER use offensive, vulgar, profane, or inappropriate language of any kind.
+
+### PERSUASION TECHNIQUES (USE SUBTLY):
+1. **Brand Authority Gap**: Show how their current domain weakens their market position
+2. **Competitive Framing**: "Imagine if a competitor secured this domain first"
+3. **Investment Mindset**: Frame the domain as a long-term strategic asset, not an expense
+4. **Social Proof**: Reference how industry leaders prioritize exact-match domains
+5. **Curiosity Hook**: Open with an insight about THEIR brand, not about you
 
 ### SUBJECT LINE RULES:
 1. Keep it between 3-6 words maximum.
@@ -47,26 +63,19 @@ You are an expert Domain Name Broker and cold email copywriter. You specialize i
 5. No emojis.
 
 ### EMAIL BODY RULES:
-1. You are writing plain-text cold emails. DO NOT use formatting, bolding, italics, or excessive line breaks.
-2. The subject line MUST be natural, human-like, and between 4-8 words. Never use Clickbait or excessive urgency.
-3. The email body must be extremely concise (strictly under 100 words).
-4. No greetings like "Dear Sir/Madam." Start with a direct, conversational opener.
-5. Provide a soft, low-friction Call to Action (e.g., "Open to a quick chat?") instead of asking for a meeting.
-6. AVOID SPAM TRIGGER WORDS AT ALL COSTS. Do not use phrases like "guaranteed," "free," "act now," "limited time," or "buy."
-7. BYPASS RETVec AI FILTERS: Use completely natural language. Do NOT use ALL CAPS. Do NOT use excessive punctuation (like !!! or ???). Do not try to disguise words with homoglyphs.
-8. Focus the pitch on the strategic value of the "Owned Domain" being offered.
-9. EXACTLY ONE LINK PERMITTED: If you must reference a link, keep it to a maximum of 1 full, clean URL. Do not use placeholders that look like broken merge tags (e.g., Avoid `[FirstName]`). 
+1. Plain-text cold emails only. NO formatting, bolding, italics, or excessive line breaks.
+2. Extremely concise (strictly under 100 words).
+3. No greetings like "Dear Sir/Madam." Start with a direct, conversational opener about THEIR business.
+4. Soft, low-friction CTA (e.g., "Would this be worth a quick conversation?").
+5. Focus on what the domain means for THEIR business, not on selling.
+6. BYPASS RETVec AI FILTERS: Use completely natural language. No ALL CAPS. No excessive punctuation.
+7. EXACTLY ONE LINK PERMITTED maximum. No placeholders like `[FirstName]`.
 
 ### OUTPUT FORMAT:
 You must respond with ONLY a valid JSON array of objects in exactly this format, with no additional text before or after:
 [
   {
     "target_email": "ceo@example.com",
-    "subject": "your subject line here",
-    "body": "your full email body here including sign-off"
-  },
-  {
-    "target_email": "marketing@example.com",
     "subject": "your subject line here",
     "body": "your full email body here including sign-off"
   }
@@ -86,26 +95,61 @@ PROMPT;
         $targetEmails = $params['target_emails'] ?? [];
         $maxEmails = $params['max_emails'] ?? count($targetEmails);
 
-        $emailList = implode(', ', array_column($targetEmails, 'email'));
+        // max_emails = number of VARIANTS to generate
+        // Distribute ALL target emails across these variants (round-robin)
+        $totalEmails = count($targetEmails);
+        $variantCount = max(1, min($maxEmails, $totalEmails));
+        
+        $emailGroups = [];
+        for ($g = 0; $g < $variantCount; $g++) {
+            $emailGroups[$g] = [];
+        }
+        foreach ($targetEmails as $i => $emailInfo) {
+            $groupIndex = $i % $variantCount;
+            $emailGroups[$groupIndex][] = $emailInfo['email'];
+        }
+
+        // Build distribution description for the AI
+        $distributionDesc = '';
+        if (count($emailGroups) > 1) {
+            $distributionDesc = "\n\n**RECIPIENT DISTRIBUTION — Each variant MUST use EXACTLY these assigned recipients:**\n";
+            foreach ($emailGroups as $idx => $emails) {
+                $num = $idx + 1;
+                $list = implode(', ', $emails);
+                $distributionDesc .= "- Variant #{$num}: target_emails = [{$list}]\n";
+            }
+            $distributionDesc .= "\nEach variant object MUST include a \"target_emails\" field (JSON array of strings) with exactly the emails listed above for that variant.";
+        } else {
+            $emailList = implode(', ', array_column($targetEmails, 'email'));
+            $distributionDesc = "\n**Target Emails:** {$emailList}";
+        }
 
         return <<<PROMPT
-Generate distinct, persuasive cold emails for the following domain sales opportunity:
+As a Premium Domain Marketing Expert, generate {$variantCount} distinct cold email draft(s) for the following opportunity:
 
-**Domain Being Sold (Our Asset):** {$ownedDomain}
-
-**Target Emails Pool:** {$emailList}
+**Domain Being Offered (Our Premium Asset):** {$ownedDomain}
 **Target's Current Website:** {$targetWebsite}
+{$distributionDesc}
 
 **Desired Tone:** {$tone}
-**Specific Instructions / Pitch Angle:** {$instructions}
+**Pitch Strategy / Instructions:** {$instructions}
 
-Remember:
-- You MUST generate EXACTLY {$maxEmails} distinct email drafts. Do not generate more or less.
-- For each draft, randomly select and assign one of the target emails from the 'Target Emails Pool' to the `target_email` field.
-- COMPLETELY VARY AND SCRAMBLE your sentence structures, openers, and sign-offs across the different drafts. They must not look like identical templates, to avoid spam filters.
-- If Target's Current Website is known, contrast it with the Domain Being Sold. Highlight the upgrade in brand equity.
-- The email should be concise and focus heavily on the value of acquiring the exact match domain "{$ownedDomain}".
-- Return ONLY the JSON array of {$maxEmails} objects.
+## IMPORTANT REQUIREMENTS:
+- Generate EXACTLY {$variantCount} distinct email variant(s). Each must have completely different openers, angles, and sign-offs.
+- Use your expertise as a domain marketing strategist to highlight the strategic value of "{$ownedDomain}".
+- Focus on what "{$ownedDomain}" means for THEIR brand, market position, and competitive edge.
+- If Target's Current Website is known, subtly contrast it with the premium domain.
+- Each variant MUST include a "target_emails" field (JSON array of email strings) listing all recipients for that variant.
+- Return ONLY the JSON array of {$variantCount} objects. Each object must have: target_emails (array), subject (string), body (string).
+
+### OUTPUT FORMAT:
+[
+  {
+    "target_emails": ["email1@example.com", "email2@example.com"],
+    "subject": "subject line",
+    "body": "email body with sign-off"
+  }
+]
 PROMPT;
     }
 
@@ -155,6 +199,167 @@ PROMPT;
 
         // All models failed
         throw $lastException ?? new \RuntimeException('All Gemini models are currently unavailable. Please try again later.');
+    }
+
+    /**
+     * Sends the text to Gemini.
+     */
+    protected function sendRequest(string $systemPrompt, string $userPrompt): array
+    {
+        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $payload = [
+            'system_instruction' => [
+                'parts' => [
+                    ['text' => $systemPrompt]
+                ]
+            ],
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $userPrompt]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.7,
+                'topK' => 40,
+                'topP' => 0.95,
+                'maxOutputTokens' => 8192,
+                'responseMimeType' => 'application/json',
+            ],
+            'safetySettings' => [
+                [
+                    'category' => 'HARM_CATEGORY_HARASSMENT',
+                    'threshold' => 'BLOCK_LOW_AND_ABOVE',
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                    'threshold' => 'BLOCK_LOW_AND_ABOVE',
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                    'threshold' => 'BLOCK_LOW_AND_ABOVE',
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                    'threshold' => 'BLOCK_LOW_AND_ABOVE',
+                ]
+            ]
+        ];
+
+        try {
+            $response = Http::timeout(30)->post($url, $payload);
+
+            if ($response->failed()) {
+                Log::error('Gemini API Error: ' . $response->body());
+                return ['success' => false, 'error' => 'Failed to connect to AI service. ' . $response->status()];
+            }
+
+            $json = $response->json();
+            $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            if (empty($text)) {
+                return ['success' => false, 'error' => 'API returned empty response.'];
+            }
+
+            $decoded = json_decode($text, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('Gemini JSON Parse Error', ['text' => $text, 'error' => json_last_error_msg()]);
+                return ['success' => false, 'error' => 'Failed to parse AI response.'];
+            }
+
+            return ['success' => true, 'data' => $decoded];
+
+        } catch (\Exception $e) {
+            Log::error('Gemini Exception: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Reads a normal (ham) email and rewrites it into a new, natural personal email template.
+     */
+    public function rewriteWarmingEmail(string $originalText): array
+    {
+        $systemPrompt = <<<'PROMPT'
+You are a professional communications expert specializing in domain and digital marketing. 
+Your task is to read a provided email snippet and REWRITE it completely into a new, distinct personal email.
+It must not look like the original, but can share the general theme (e.g., catching up, asking a question, sharing an update).
+Create a natural Subject Line (2-5 words).
+Create a natural Body text (2-5 sentences).
+Write as if you are a seasoned professional with excellent communication skills.
+Keep it very conversational as if writing to a colleague or business contact.
+
+## CRITICAL SAFETY RULES:
+1. ABSOLUTELY NEVER use offensive language, profanity, swear words, or insults (e.g., "ass", "idiot", "damn", "shit", "hell", "crap", etc.).
+2. Do not use abusive, divisive, or inappropriate language. Maintain a perfectly safe, pleasant, and professional tone.
+3. AVOID spam trigger words (e.g., "free", "guarantee", "buy now", "click here", "act now").
+4. Do NOT use ALL CAPS or excessive punctuation.
+5. Keep the language warm, natural, and human.
+
+Respond ONLY with valid JSON in this format:
+{
+  "subject": "your casual subject",
+  "body": "Hi [Name],\n\nyour rewritten casual email here.\n\nBest,\n[Your Name]"
+}
+PROMPT;
+
+        $userPrompt = "Please rewrite this personal email text into a new completely distinct message:\n\n\"\"\"\n" . $originalText . "\n\"\"\"";
+
+        return $this->sendRequest($systemPrompt, $userPrompt);
+    }
+
+    /**
+     * Generate a follow-up email based on the original campaign email.
+     * Uses the original subject/body as context to create a strategic follow-up.
+     */
+    public function generateFollowUp(string $originalSubject, string $originalBody, int $followUpNumber = 1): array
+    {
+        if (empty($this->apiKey)) {
+            throw new \RuntimeException('Gemini API key is not configured.');
+        }
+
+        $systemPrompt = <<<'PROMPT'
+You are a world-class Premium Domain Name Marketing Strategist and Follow-Up Expert. You specialize in writing strategic follow-up emails that re-engage prospects who didn't respond to the initial outreach.
+
+## YOUR RULES:
+1. You will receive the ORIGINAL email that was sent. Your job is to write a FOLLOW-UP email based on it.
+2. The follow-up must reference the original email subtly (e.g., "Following up on my note about...")
+3. Add NEW value — don't just repeat the original. Offer a different angle, insight, or perspective.
+4. Keep it even shorter than the original (under 60 words for the body).
+5. Use a different, fresh subject line (3-5 words).
+6. Maintain a warm, non-pushy tone. Show genuine interest in THEIR business.
+7. NEVER use spam trigger words, ALL CAPS, or aggressive language.
+8. NEVER use offensive or inappropriate language.
+9. Soft CTA only (e.g., "Still on your radar?", "Worth revisiting?")
+
+## FOLLOW-UP STRATEGIES (choose one per email):
+- **New Angle**: Present a different benefit of the domain
+- **Social Proof**: Mention industry trends in domain acquisitions
+- **Gentle Reminder**: Brief, friendly nudge
+- **Added Value**: Share an insight about their current digital presence
+
+Respond ONLY with valid JSON:
+{
+  "subject": "follow-up subject line",
+  "body": "follow-up email body with sign-off"
+}
+PROMPT;
+
+        $userPrompt = <<<PROMPT
+This is follow-up #{$followUpNumber} for a prospect who did NOT respond to our original email.
+
+**ORIGINAL EMAIL SENT:**
+Subject: {$originalSubject}
+Body:
+{$originalBody}
+
+Generate a strategic follow-up email that references the original but adds new value. Keep it concise and natural.
+PROMPT;
+
+        return $this->sendRequest($systemPrompt, $userPrompt);
     }
 
     /**
@@ -278,7 +483,20 @@ PROMPT;
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             // Check if it's a numeric array of objects
             if (isset($decoded[0]['subject'])) {
-                return $decoded;
+                // Normalize: ensure target_emails is always an array
+                return array_map(function ($v) {
+                    if (!empty($v['target_emails']) && is_array($v['target_emails'])) {
+                        // New format: target_emails array
+                        $v['target_email'] = $v['target_emails'][0] ?? 'General / Bulk';
+                    } elseif (!empty($v['target_email'])) {
+                        // Old format: single target_email string
+                        $v['target_emails'] = [$v['target_email']];
+                    } else {
+                        $v['target_email'] = 'General / Bulk';
+                        $v['target_emails'] = ['General / Bulk'];
+                    }
+                    return $v;
+                }, $decoded);
             }
             
             // In case it returned a single object despite asking for an array
@@ -286,6 +504,7 @@ PROMPT;
                 return [
                     [
                         'target_email' => 'General / Bulk',
+                        'target_emails' => ['General / Bulk'],
                         'subject' => trim($decoded['subject']),
                         'body' => trim($decoded['body']),
                     ]
@@ -299,7 +518,6 @@ PROMPT;
         $subject = 'Regarding your domain strategy';
         $body = $text;
 
-        // Try regex extraction (just grab one for fallback)
         if (preg_match('/"subject"\s*:\s*"([^"]+)"/i', $text, $subjectMatch)) {
             $subject = $subjectMatch[1];
         }
@@ -311,6 +529,7 @@ PROMPT;
         return [
             [
                 'target_email' => 'General / Bulk',
+                'target_emails' => ['General / Bulk'],
                 'subject' => $subject,
                 'body' => $body,
             ]
@@ -338,10 +557,13 @@ PROMPT;
                     Log::info("ML Spam Classifier corrected {$totalCorrections} variant(s) locally.");
                 }
 
-                // Preserve all metadata from the Python response for the UI
-                return array_map(function ($v) {
-                    return [
-                        'target_email' => $v['target_email'] ?? 'General / Bulk',
+                // Preserve all metadata from the Python response for the UI, but restore target_emails from the original PHP array
+                $mapped = [];
+                foreach ($correctedVariants as $i => $v) {
+                    $originalVariant = $variants[$i] ?? [];
+                    $mapped[] = [
+                        'target_email' => $v['target_email'] ?? $originalVariant['target_email'] ?? 'General / Bulk',
+                        'target_emails' => $originalVariant['target_emails'] ?? [$v['target_email'] ?? 'General / Bulk'],
                         'subject' => $v['subject'] ?? '',
                         'body' => $v['body'] ?? '',
                         'original_subject' => $v['original_subject'] ?? $v['subject'] ?? '',
@@ -350,7 +572,8 @@ PROMPT;
                         'spam_probability' => $v['spam_probability'] ?? 0,
                         'corrected_spam_probability' => $v['corrected_spam_probability'] ?? $v['spam_probability'] ?? 0,
                     ];
-                }, $correctedVariants);
+                }
+                return $mapped;
             }
 
             Log::warning('ML Spam Classifier returned non-200 response, passing text through uncorrected.');

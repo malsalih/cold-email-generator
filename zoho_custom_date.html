@@ -1,0 +1,486 @@
+<body>
+		<div class="bg"></div>
+		<div class="Alert"> <span class="tick_icon"></span> <span class="alert_message"></span> </div>
+    	<div class="Errormsg"> <span class="error_icon"></span> <span class="error_message"></span><span class="helplink"></span><div class="error_close_icon hide"></div></div>
+		<div class="container">
+   			<div class="loader" style="display: none;"></div> 
+  			<div class="blur_elem blur" style="display: none;"></div>
+			<form class="zform" name="pcform" id="relogin" novalidate="novalidate" autocomplete="off">       
+      			<div class="logo-container">
+<style>
+
+
+	.zohologo , .zoho_logo ,  .logo , .rebrand_partner_logo , .verifyzohologo, .resultZohologo {height: 40px;margin-bottom: 20px;background-size: auto 100%;background-repeat: no-repeat;background-image: url('https://static.zohocdn.com/iam/v2/components/images/newZoho_logo.5f6895fcb293501287eccaf0007b39a5.svg');}
+	
+	.darkmode .zoho_logo {background-image: url('https://static.zohocdn.com/iam/v2/components/images/newZoho_logo_dark.aed96a3461d2b82c4145185f95c4b491.svg');}
+	
+	
+	.Site24x7 , .darkmode .Site24x7  {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/site24x7-logo.c2508f9d5f2230abb5bd50506c1f4fca.png"); height: 33px;}
+	    
+	.AlarmsOne , .darkmode .AlarmsOne {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/alarmsone.35702305bde2086958074e03fff816e6.png"); height: 46px;}
+	
+	.SDPOnDemand , .darkmode .SDPOnDemand {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/SDPOnDemand.88d96b9b5bc8790fa04e2fda01810c5b.png"); height: 46px;}
+	
+	.ManageEngine, .MDMOnDemand {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/manageengine-logo.06be98469f921326c5e27f8adf72600c.svg"); height: 36px;}
+	
+	.darkmode .ManageEngine, .darkmode .MDMOnDemand {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/manageengineDark-logo.4329e3afa8212d522652eab1bcc4dc84.svg"); height: 36px;}
+	
+	.TrainerCentral , .darkmode .TrainerCentral {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/TrainerCentral.a34cae35eb7d659e49f0353b63a1ca47.png"); height: 46px;}
+	
+	.DesktopCentralCloud , .darkmode .DesktopCentralCloud{background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/Endpoint_Central_logo.0c37678b8c79cad10f3dcc6ed8780f81.gif"); height: 46px;}
+	
+	.MEAplus , .darkmode .MEAplus{background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/MEAPlus.92c3aeac0a29f4b89e3234a4ee964e6e.svg"); height: 46px;}
+	
+	.Van , .darkmode .Vani {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/Vani.b35a77567393fe459b0f1a38406c3263.svg");}
+	
+	.RemoteBoard , .darkmode .RemoteBoard{background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/Vani.b35a77567393fe459b0f1a38406c3263.svg");}
+	
+	.Nila , .darkmode .Nila{background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/Nila.e1a8f16211feaad8e104415c3b5546f4.svg");}
+	
+	.ZohoONDC, .VikraSeller, .VikrraSeller{background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/vikra.8814d70057fb6b74af3ab87441259171.svg");}
+	
+	.darkmode .ZohoONDC, .darkmode .VikraSeller, .darkmode .VikrraSeller {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/vikra_dark.2a5121b6a405d827ed1c1eb0a8e57d5f.svg");}
+	
+	.idmpod , .darkmode .idmpod {background-image: url("https://static.zohocdn.com/iam/v2/components/images/apps/idmpod.a0bdec9823e59acb927cdcd464c06a1f.svg");}
+	
+	
+	
+	
+	
+	@media only screen and (max-width: 435px) {
+		.zohologo , .zoho_logo ,  .logo , .rebrand_partner_logo , .verifyzohologo, .resultZohologo{
+			
+		}
+	}
+	
+	    
+	
+
+</style>
+
+	<div class="service_logo zohologo zoho_logo logo rebrand_partner_logo verifyzohologo resultZohologo VirtualOffice "></div>
+      			</div>
+      			<div class="header_content">
+			        <div class="mail_id">
+			        	<span class="name" id="login_id">i**o@ea***.c**</span>
+			        	<span class="notyoulink">Not you?</span> 
+			        </div>
+			        <span class="head_text">Verify your identity</span>
+			        <div class="reauth_desc">Since you're trying to perform a sensitive operation, we need re-verification to let you proceed.</div>
+		        </div>
+		        
+		        <div class="header_for_oneauth" style="display: none;">
+			        <div class="mail_id">
+			        	<span class="name" id="login_id">i**o@ea***.c**</span>
+			        	<span class="notyoulink">Not you?</span> 
+			        </div>	
+			        <span class="head_text"></span>
+					<div class="reauth_desc">Since you're trying to perform a sensitive operation, we need re-verification to let you proceed.</div>
+					<span class="header_desc"></span>
+		        </div>
+		
+				<div id="relogin_password">
+					<div class="relogin_primary_container" id="relogin_primary_container">
+					<div class="password_field" id="password_container">
+						<div class="textbox_div forms" id="forms_error">
+							<input class="text_box" type="password" autocomplete="off" name="current" placeholder="Enter your password" id="relogin_password_input" maxlength="250" required="">
+							<span class="pass_icon icon-hide"></span>
+						</div>
+						<div class="error_msg fielderror"></div>
+						<div class="textbox_actions" id="enableotpoption">
+							<span class="bluetext_action" id="reloginwithotp">Verify using OTP</span>
+								<span class="bluetext_action bluetext_action_right blueforgotpassword" id="blueforgotpassword">Forgot Password?</span>
+						</div>
+						<div class="textbox_actions" id="enableforgot" style="display: block;">
+								<span class="bluetext_action bluetext_action_right blueforgotpassword" id="blueforgotpassword">Forgot Password?</span>
+						</div>
+
+					</div>
+					
+					<div class="textbox_div" style="display:none" id="mfa_device_container">
+						<div class="devices">
+							<select class="secondary_devices"></select>
+							<div class="deviceparent">
+								<span class="deviceinfo icon-device"></span>
+								<span class="devicetext"></span>
+							</div>
+						</div>
+						<div class="rnd_container">
+							<div id="rnd_number"></div>
+							<div class="bluetext_action rnd_resend resendotp">Resend Push</div>
+						</div>
+					</div>
+					<div class="sendotp_to_email hide"><div class="email_desc"></div><button type="button" class="btn sendotp_to_email_btn"><span>Send OTP</span></button></div>
+					<div class="sendotp_to_mobile hide"><div class="mobile_desc"></div><button type="button" class="btn sendotp_to_mobile_btn"><span>Send Code</span></button></div>
+					<div id="choose_otp_medium_conatiner" class="choose_otp_medium_conatiner hide">
+						<div class="mnv_choose_desc">A verification code will be sent to your mobile number <b>{0}</b>. Choose how you want to receive the code.</div>
+						<div class="mnv-medium-btns">
+							<button id="choose_btn_sms" class="btn mnv-btn addtabindex" type="button" aria-label="Via SMS">
+								<span class="iconnic-sms mnv-btn-icons" aria-hidden="true"></span>
+Via SMS							</button>
+							<button id="choose_btn_whatsapp" class="btn mnv-btn addtabindex" type="button" aria-label="Via WhatsApp">
+								<span class="iconnic-whatsapp mnv-btn-icons" aria-hidden="true"></span>
+Via WhatsApp							</button>
+							<button id="choose_btn_arattai" class="btn mnv-btn addtabindex" type="button" aria-label="Via Arattai">
+								<span class="icon-arattai_small mnv-btn-icons" aria-hidden="true"></span>
+Via Arattai							</button>
+						</div>
+					</div>
+					<div class="textbox_div" id="secondary_email_container" style="margin-top:20px">
+						<div class="secondary_verify_desc hide"><span class="backoption icon-backarrow"></span>Verify via email address</div>
+						<div class="secondary_email_desc"></div>
+						<div class="email hide" id="secondary_mail"><span class="icon icon-email"></span><span class="masked_email_id"></span> </div>
+						<span class="bluetext_action verifyUsingOtp hide">Verify using OTP</span>
+					</div>
+					<div id="otp_container">
+						<div class="textbox_div">
+							<div class="header_desc email_otp_description">Enter the OTP sent to <span></span>.</div>
+							<div class="header_desc mobile_otp_description">Enter the code sent to your mobile number <span></span> to complete the verification.</div>
+							<div class="otp_input" id="otp_input_box"></div>
+							<div class="error_msg fielderror"></div>
+							<div class="textbox_actions otp_actions">
+								<span class="bluetext_action hide" id="verifywithpass">Verify using Password</span>
+								<span class="bluetext_action showmorereloginoption" style="display: none;">Try another way</span>
+								<span class="bluetext_action bluetext_action_right resendotp">Resend OTP</span>
+							</div>
+						</div>
+					</div>
+					
+					<div class="textbox_div" id="mfa_totp_container">
+						<div id="mfa_totp_field" class="otp_input" style="margin-top:30px;"></div>
+						<div class="error_msg fielderror"></div>
+					</div>
+		
+					<div class="qrcodecontainer" id="mfa_scanqr_container" style="margin-top:30px;">
+						<div>
+						    <div id="qrimg"></div>
+						    <div class="expandQrLabel"><span class="expandQrLableIcon icon-Expand"></span><span class="expandQrLabelText">Expand</span><span class="minimizeQrLabelText">Minimize</span></div>
+						</div>
+					</div>
+					<button style="display:none" class="btn  blue waitbtn" id="waitbtn">
+						<span class="loadwithbtn"></span>
+						<span class="waittext">Waiting for approval</span>
+					</button>
+					</div>
+					<div class="textbox_actions_more" id="enablemore">
+						<span class="bluetext_action showmorereloginoption">Try another way</span>
+						<span class="bluetext_action bluetext_action_right blueforgotpassword" id="blueforgotpassword">Forgot Password?</span>
+						<span class="bluetext_action bluetext_action_right resendotp" id="resendotp">Resend OTP</span>
+					</div>	
+					
+					<div class="passwordless_opt_container">
+						<div id="trytitle"></div>
+						<div class="relogin_head verify_title">Verify another way</div>
+						<div class="optionstry optionmod" id="trytotp">
+							<div class="img_option_try img_option icon-totp"></div>
+							<div class="option_details_try">
+								<div class="option_title_try">Offline TOTP verification</div>
+								<div class="option_description try_option_desc">Open OneAuth, tap Sign in another way, and enter it here to complete verification.</div>
+							</div>
+							<div class="mfa_totp_verify verify_totp hide" id="verify_totp_container"> 
+								<div id="verify_totp" class="otp_container mini_txtbox"></div>
+								<button class="btn blue mini_btn" id="totpverifybtn" tabindex="2">
+									<span class="loadwithbtn"></span>
+									<span class="waittext">Verify</span>
+								</button>
+								<div class="fielderror"></div>
+							</div>
+						</div>
+						<div class="optionstry optionmod" id="tryscanqr">
+							<div class="img_option_try img_option icon-qr"></div>
+							<div class="option_details_try">
+								<div class="option_title_try">Scan QR verification</div>
+								<div class="option_description try_option_desc">Open OneAuth and tap Sign in another way. Tap Scan QR instead to open code scanner. Scan the below code to complete verification.</div>
+							</div>
+							<div class="verify_qr" id="verify_qr_container">
+								<div class="qrcodecontainer">
+									<div>
+										<div id="verify_qrimg"></div>
+										<div class="loader" style="display: none;"></div>
+										<div class="blur_elem blur" style="display: none;"></div>
+										<div class="expandQrLabel"><span class="expandQrLableIcon icon-Expand"></span><span class="expandQrLabelText">Expand</span><span class="minimizeQrLabelText">Minimize</span></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<span class="close_icon error_icon"></span>
+						<div class="text16 pointer nomargin" id="recoverybtn_mob">Can't access your device?</div>
+					</div>
+					
+					<div id="other_relogin_options"></div>
+
+					<div id="problemreloginui"></div>
+							
+					<button class="btn" id="reauth_button"><span>Confirm Password</span></button>
+					<div class="tryAnotherBlueText" id="tryAnotherSAMLBlueText">Try another way</div>
+					<div class="tryanother text16">Verify another way</div>	
+					<div class="text16 pointer nomargin" id="problemrelogin">Having trouble with OneAuth?</div>
+					<div class="text16 pointer nomargin" id="try_other_options" style="display: none;">Try other options</div>
+	 			</div>	
+	 			<div class="fed_2show" style="margin-top: 30px; display: none;">
+					<span class="relogin_fed_text">Verify Using</span>
+					<div id="all_idps">
+					</div>	
+				</div>	
+				<div class="openIDP_template hide">
+					<span class="fed_div box_with_text open_id_temp" id=""> 
+						<span class="fed_icon icon-openid">
+							<span class="path1"></span>
+		                	<span class="path2"></span>
+		                	<span class="path3"></span>
+						</span>
+						<span class="fed_text_avoid">OpenID - {0}</span>
+					</span>
+					<span class="fed_div box_with_text saml_temp" id=""> 
+						<span class="fed_icon icon-fsaml">
+							<span class="path1"></span>
+		                	<span class="path2"></span>
+		                	<span class="path3"></span>
+						</span>
+						<span class="fed_text_avoid">SAML - {0}</span>
+					</span>
+					<span class="fed_div box_with_text black_bg jwt_temp" id=""> 
+						<span class="fed_icon icon-fjwf">
+							<span class="path1"></span>
+		                	<span class="path2"></span>
+		                	<span class="path3"></span>
+		                	<span class="path4"></span>
+		                	<span class="path5"></span>
+		                	<span class="path6"></span>
+		                	<span class="path7"></span>
+		                	<span class="path8"></span>
+		                	<span class="path9"></span>
+		                	<span class="path10"></span>
+						</span>
+						<span class="fed_text_avoid">JWT - {0}</span>
+					</span>
+				</div>
+			</form>
+			<div class="goto_oneauth_fallback_container">
+    			<div class="nopassword_icon icon-uninstalled"></div>
+		    	<div class="backup_info_tab">
+    				<div class="backup_info_header">Alternate options to verify</div>
+    				<div class="backup_info_content">It seems you’ve uninstalled the OneAuth app on your primary device <b>{0}.</b> Please verify using other sign in modes.<a href="{1}" target="_blank" rel="noreferrer"> Learn more</a></div>
+    				<div class="backup_info_mode btn">Show available options</div>
+    				<div class="contactSupport">Contact Support</div>
+    			</div>
+    		</div>
+    		<div class="options contact_support_div">
+				<div class="info_head">
+					<span class="icon-backarrow backoption support_bk_button" id="support_bk_button"></span>
+			    	<span id="headtitle">Contact Support</span>
+				    <div class="head_info">
+				    	<div style="margin-bottom:20px">We are here to help you. </div>
+				    	<div class="normal_mode_support_contactid">Send an email to <a href="mailto:support@zohoaccounts.com" style="color:#0091FF;text-decoration:none;">support@zohoaccounts.com</a>  and we will assist you in recovering your account.</div>
+				    </div>
+				</div>
+			</div>
+		</div> 
+	<style>
+		.forced-logout-container {
+		    display: block;
+		    height: auto;
+		    width: 500px;
+		    margin: auto;
+		    position: relative;
+		    margin-top: 80px;
+		    border-radius: 4px;
+			background: #FFF;
+			box-shadow: 0px 2px 30px 0px rgba(0, 0, 0, 0.06);
+		    padding: 50px 50px;
+		    box-sizing: border-box;
+		    margin-bottom: 30px;
+		    min-height: 520px;
+		    text-align:center;
+		}
+		.forced-logout-container .zoho_logo {
+	    	display: block;
+		    height: 40px;
+		    width: auto;
+		    background: url('https://static.zohocdn.com/iam/v2/components/images/newZoho_logo.5f6895fcb293501287eccaf0007b39a5.svg') no-repeat transparent;
+		    background-size: auto 100%;
+		    background-position: center;
+		}
+		.forced_logout_svg{
+			display:inline-block;
+			width:38px;
+			height:38px;
+			margin-top:24px;	
+			background: url('https://static.zohocdn.com/iam/v2/components/images/logout-icon.2f77dd6fca270d773396414ab23e7448.svg') no-repeat transparent;
+		}
+		.forced_logout_header{
+			font-weight:600;
+			font-size:20px;
+			line-height:24px;
+			text-align:center;
+			margin-top:24px;
+		}
+		.forced_logout_desc{
+			font-weight:400;
+			font-size:14px;
+			line-height:20px;
+			text-align:center;
+			opacity:0.8;
+			margin-top:8px;
+		}
+		.redirection_text{
+			opacity:0.8;
+			text-align: center;
+			font-size: 14px;
+			line-height: 20px;
+			margin-top:24px;
+		}
+		.redirect_btn{
+			color: #1389E3;
+			text-align: center;
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 18px;
+			margin-top:12px;
+			outline:0px;
+			background-color:transparent;
+			border:0px;
+			cursor:pointer;
+		}
+		#seconds,#seconds_s{
+			color: rgba(0, 0, 0, 0.80);
+			font-size: 14px;
+			font-weight: 500;
+			line-height: 20px;
+		}
+		.hide{
+			display:none;
+		}
+		@media only screen and (max-width: 435px){
+			.forced-logout-container {
+		        display: block;
+		        height: auto;
+		        box-shadow: none;
+		        margin-top: 20px;
+		        width: 100%;
+		        padding: 30px;
+		        min-height: unset;
+		        margin-bottom: 90px;
+	    	}
+	    	.hide{
+				display:none;
+			}
+		}
+		
+	</style>
+	<div class="forced-logout-container hide">
+		<div class="zoho_logo"></div>
+		<div class="forced_logout_svg"></div>
+		<div class="forced_logout_header">You've been signed out</div> 
+		<div class="forced_logout_desc">As there have been multiple unsuccessful attempts to verify, we've signed you out for security reasons.</div>
+		<div class="redirection_text">You'll be redirected in <span id="seconds">10</span>s</div>
+		<button type="button" class="redirect_btn">Redirect now</button>
+	</div><style>
+#footer
+{	
+    width: 100%;
+    height: 20px;
+    font-size: 14px;
+    color: #727272;
+   	position:absolute;
+   	left:0px;
+   	right:0px;
+    margin:20px auto;
+    text-align:center;
+    font-size: 14px;
+    bottom: 0px;
+}
+#footer a
+{
+    text-decoration:none;
+    color: #727272;
+    font-size: 14px;
+}
+
+@media only screen and (max-width : 435px)
+{
+	#footer a,#footer{	
+		font-size: 12px;
+		z-index: 1;
+	}
+}
+</style>
+
+<footer id="footer" style="top: 740px;"> 
+
+	<span>
+		© 2026, <a href="http://www.zohocorp.com/" target="_blank" rel="noreferrer">Zoho Corporation Pvt. Ltd.</a> All Rights Reserved.	</span>
+	
+</footer>
+
+<script nonce="+GeB0sz4TKD8Ai22GCMB8w==">
+	function setFooterPosition(){
+		var container = document.getElementsByClassName("container")[0];
+		var top_value = window.innerHeight-60;
+		if(container && (container.offsetHeight+container.offsetTop+30)<top_value){
+			document.getElementById("footer").style.top = top_value+"px"; // No I18N
+		}
+		else{
+			document.getElementById("footer").style.top = container && (container.offsetHeight+container.offsetTop+30)+"px"; // No I18N
+		}
+	}
+	window.addEventListener("resize",function(){
+		setFooterPosition();
+	});
+	window.addEventListener("load",function(){
+		setFooterPosition();
+	});
+</script>	
+	<script nonce="+GeB0sz4TKD8Ai22GCMB8w==">
+		$(".error_close_icon").on('click',function(){closeTopErrNotification()});
+		$("#relogin").on('submit',function(event){verifyUserAuthFactor(this,event)});
+		$(".notyoulink").on('click',function(){logoutFuntion()});
+		$("#relogin_password_input").on('keydown',function(){remove_err()});
+        $(".pass_icon").on('click',function(){pass_show_hide()});
+        $("#reloginwithotp").on('click',function(){showAndGenerateOtp()});
+        $(".blueforgotpassword").on('click',function(){goToForgotPassword()});
+        $("#mfa_device_container .secondary_devices").on('change',function(){changeSecDevice(this)});
+        $(".rnd_container .resendotp").on('click',function(){enableMyZohoDevice()});
+        $("#reloginwithotp").on('click',function(){showAndGenerateOtp()});
+        $("#secondary_email_container .backoption").on('click',function(){showViaSecondaryMail()});
+        $(".verifyUsingOtp").on('click',function(){showOtp()});
+        $("#verifywithpass").on('click',function(){showPassword()});
+        $(".otp_actions .showmorereloginoption").on('click',function(){showproblemrelogin(this);});
+        $("#enablemore .showmorereloginoption").on('click',function(){showproblemrelogin(this);});
+        $("#enablemore #resendotp").on('click',function(){generateOTP(true);});
+        $(".otp_actions .resendotp").on('click',function(){generateOTP(true);});
+        $("#mfa_scanqr_container #openoneauth").on('click',function(){QrOpenApp()});
+		$("#relogin_primary_container #openoneauth").on('click',function(){QrOpenApp()});
+        $("#trytotp").on('click',function(){tryAnotherway('totp');});
+        $("#tryscanqr").on('click',function(){tryAnotherway('qr');});
+        $("#tryscanqr #openoneauth").on('click',function(){QrOpenApp()});
+        $(".passwordless_opt_container .close_icon").on('click',function(){hideTryanotherWay()});
+        $(".passwordless_opt_container .tryanother,.passwordless_opt_container~.tryanother").on('click',function(){showTryanotherWay()});
+        $("#relogin_password #tryAnotherSAMLBlueText,#relogin_password #problemrelogin,#relogin_password #try_other_options").on('click',function(){showproblemrelogin(this);});
+        $("#all_idps .google_icon").on('click',function(){createandSubmitOpenIDForm("google");});
+        $("#all_idps .MS_icon").on('click',function(){createandSubmitOpenIDForm("azure");});
+        $("#all_idps .linkedin_icon").on('click',function(){createandSubmitOpenIDForm("linkedin");});
+        $("#all_idps .fb_icon").on('click',function(){createandSubmitOpenIDForm("facebook");});
+        $("#all_idps .twitter_icon").on('click',function(){createandSubmitOpenIDForm("twitter");});
+        $("#all_idps .yahoo_icon").on('click',function(){createandSubmitOpenIDForm("yahoo");});
+        $("#all_idps .slack_icon").on('click',function(){createandSubmitOpenIDForm("slack");});
+        $("#all_idps .qq_icon").on('click',function(){createandSubmitOpenIDForm("qq");});
+        $("#all_idps .wechat_icon").on('click',function(){createandSubmitOpenIDForm("wechat");});
+        $("#all_idps .weibo_icon").on('click',function(){createandSubmitOpenIDForm("weibo");});
+        $("#all_idps .baidu_icon").on('click',function(){createandSubmitOpenIDForm("baidu");});
+        $("#all_idps .apple_normal_icon").on('click',function(){createandSubmitOpenIDForm("apple");});
+        $("#all_idps .intuit_icon").on('click',function(){createandSubmitOpenIDForm("intuit");});
+        $("#all_idps .adp_icon").on('click',function(){createandSubmitOpenIDForm("adp");});
+        $("#all_idps .github_icon").on('click',function(){createandSubmitOpenIDForm("github");});
+		$("#all_idps .feishu_icon").on('click',function(){createandSubmitOpenIDForm("feishu");});
+		$("#all_idps .wecom_icon").on('click',function(){createandSubmitOpenIDForm("wecom");});
+		$("#all_idps .arattai_icon").on('click',function(){createandSubmitOpenIDForm("arattai");});
+		$("#all_idps .gitlab_icon").on('click',function(){createandSubmitOpenIDForm("gitlab");});
+		$(".expandQrLabel").off("click").on("click",function(){
+			$(".expandQrLableIcon").toggleClass('icon-Expand icon-Collapse');
+			highlightElementWithScale(".qrcodecontainer");// no i18n
+		});
+		$("#all_idps .bitbucket_icon").on('click',function(){createandSubmitOpenIDForm("bitbucket");});
+	</script>
+
+</body>

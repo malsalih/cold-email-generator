@@ -72,12 +72,10 @@ class EmailGeneratorController extends Controller
                 'category' => 'bulk',
             ];
         } else {
-            // Apply randomized limit if provided emails exceed max_emails
-            $maxEmails = (int) $validated['max_emails'];
-            if (count($targetEmails) > $maxEmails) {
-                shuffle($targetEmails);
-                $targetEmails = array_slice($targetEmails, 0, $maxEmails);
-            }
+            // max_emails = number of VARIANTS to generate, NOT a limit on recipients
+            // All target emails are kept — they will be distributed across variants
+            // Only shuffle for randomization, don't trim
+            shuffle($targetEmails);
         }
 
         try {
@@ -129,6 +127,7 @@ class EmailGeneratorController extends Controller
     {
         return view('generator.result', [
             'email' => $email,
+            'accounts' => \App\Models\WarmingAccount::ready()->get(),
         ]);
     }
 
@@ -165,8 +164,9 @@ class EmailGeneratorController extends Controller
      */
     public function show(GeneratedEmail $email)
     {
-        return view('generator.show', [
+        return view('generator.result', [
             'email' => $email,
+            'accounts' => \App\Models\WarmingAccount::ready()->get(),
         ]);
     }
 
@@ -179,6 +179,73 @@ class EmailGeneratorController extends Controller
 
         return redirect()->route('email.history')
             ->with('success', 'Email record deleted successfully.');
+    }
+
+    /**
+     * Redirect to campaign create page with pre-filled data from a single email variant.
+     * Quick Campaign = pre-fill, NOT auto-create. User must confirm scheduling.
+     */
+    public function quickCampaign(Request $request, GeneratedEmail $email)
+    {
+        $validated = $request->validate([
+            'account_ids' => 'required|array|min:1',
+            'account_ids.*' => 'exists:warming_accounts,id',
+            'variant_index' => 'required|integer|min:0',
+        ]);
+
+        $variants = is_array($email->generated_variants) ? $email->generated_variants : [
+            [
+                'target_email' => $email->target_emails[0]['email'] ?? 'Unknown',
+                'target_emails' => [$email->target_emails[0]['email'] ?? 'unknown@example.com'],
+                'subject' => $email->generated_subject,
+                'body' => $email->generated_body,
+            ]
+        ];
+
+        $selectedVariant = $variants[$validated['variant_index']] ?? $variants[0];
+        $recipients = $selectedVariant['target_emails'] ?? [$selectedVariant['target_email'] ?? 'unknown@example.com'];
+
+        return redirect()->route('campaigns.create', [
+            'email_id' => $email->id,
+            'variant_index' => $validated['variant_index'],
+            'prefill_accounts' => $validated['account_ids'],
+            'prefill_recipients' => implode("\n", $recipients),
+            'prefill_subject' => $selectedVariant['subject'] ?? $email->generated_subject,
+            'prefill_body' => $selectedVariant['body'] ?? $email->generated_body,
+            'prefill_name' => 'حملة سريعة — ' . \Illuminate\Support\Str::limit($selectedVariant['subject'] ?? $email->generated_subject, 40),
+        ]);
+    }
+
+    /**
+     * Redirect to campaign create page with ALL variants pre-filled (multi-template).
+     */
+    public function createCampaignFromVariants(Request $request, GeneratedEmail $email)
+    {
+        $validated = $request->validate([
+            'account_ids' => 'required|array|min:1',
+            'account_ids.*' => 'exists:warming_accounts,id',
+        ]);
+
+        $variants = is_array($email->generated_variants) ? $email->generated_variants : [];
+        if (empty($variants)) {
+            return back()->with('error', 'لا توجد رسائل مُولّدة لإنشاء حملة منها.');
+        }
+
+        // Collect all unique recipients
+        $allRecipients = [];
+        foreach ($variants as $v) {
+            $emails = $v['target_emails'] ?? [$v['target_email'] ?? ''];
+            $allRecipients = array_merge($allRecipients, $emails);
+        }
+        $allRecipients = array_values(array_unique(array_filter($allRecipients)));
+
+        return redirect()->route('campaigns.create', [
+            'email_id' => $email->id,
+            'multi_variant' => 1,
+            'prefill_accounts' => $validated['account_ids'],
+            'prefill_recipients' => implode("\n", $allRecipients),
+            'prefill_name' => 'حملة متعددة — ' . $email->owned_domain . ' — ' . now()->format('M d'),
+        ]);
     }
 
     /**

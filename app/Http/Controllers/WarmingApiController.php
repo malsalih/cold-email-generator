@@ -101,16 +101,26 @@ class WarmingApiController extends Controller
 
             $sendMode = \App\Models\WarmingSetting::getSendMode();
 
-            // Determine send mode: campaign jobs use send_later if schedule_send_at is set
             $jobSendMode = $sendMode;
             $scheduleSendAt = null;
             $jobTimezone = null;
+            $isFollowUp = false;
+            $originalSubject = null;
 
             if ($pendingLog->schedule_send_at && $pendingLog->campaign_id) {
                 $jobSendMode = 'send_later';
                 $scheduleSendAt = $pendingLog->schedule_send_at->format('Y-m-d H:i');
                 $campaign = $pendingLog->campaign;
                 $jobTimezone = $campaign->timezone ?? 'Asia/Riyadh';
+                
+                if ($campaign->parent_campaign_id) {
+                    $isFollowUp = true;
+                    // parent campaign subject
+                    $parentCampaign = \App\Models\Campaign::find($campaign->parent_campaign_id);
+                    if ($parentCampaign) {
+                        $originalSubject = $parentCampaign->getSubject();
+                    }
+                }
             }
 
             return response()->json([
@@ -128,6 +138,8 @@ class WarmingApiController extends Controller
                     'campaign_id' => $pendingLog->campaign_id,
                     'schedule_send_at' => $scheduleSendAt,
                     'timezone' => $jobTimezone,
+                    'is_followup' => $isFollowUp,
+                    'original_subject' => $originalSubject,
                 ],
             ]);
         }

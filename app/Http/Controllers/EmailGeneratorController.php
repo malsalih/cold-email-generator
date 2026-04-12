@@ -42,8 +42,8 @@ class EmailGeneratorController extends Controller
             'instructions' => 'required|string|min:10|max:2000',
             'tone' => 'required|string|in:' . implode(',', array_keys($this->getAvailableTones())),
         ], [
-            'owned_domain.regex' => 'Please enter a valid domain (e.g., mysuperdomain.com without http://).',
-            'instructions.min' => 'Please provide at least 10 characters of instructions for better email generation.',
+            'owned_domain.regex' => __('generator.error_valid_domain'),
+            'instructions.min' => __('generator.error_min_instructions'),
         ]);
 
         $ownedDomain = strtolower(trim($validated['owned_domain']));
@@ -109,7 +109,7 @@ class EmailGeneratorController extends Controller
             ]);
 
             return redirect()->route('email.result', $emailRecord->id)
-                ->with('success', 'Email generated successfully!');
+                ->with('success', __('messages.email_generated'));
 
         } catch (\RuntimeException $e) {
             Log::error('Email Generation Failed', ['error' => $e->getMessage()]);
@@ -178,7 +178,7 @@ class EmailGeneratorController extends Controller
         $email->delete();
 
         return redirect()->route('email.history')
-            ->with('success', 'Email record deleted successfully.');
+            ->with('success', __('messages.email_deleted'));
     }
 
     /**
@@ -212,7 +212,7 @@ class EmailGeneratorController extends Controller
             'prefill_recipients' => implode("\n", $recipients),
             'prefill_subject' => $selectedVariant['subject'] ?? $email->generated_subject,
             'prefill_body' => $selectedVariant['body'] ?? $email->generated_body,
-            'prefill_name' => 'حملة سريعة — ' . \Illuminate\Support\Str::limit($selectedVariant['subject'] ?? $email->generated_subject, 40),
+            'prefill_name' => __('generator.quick_campaign') . ' — ' . \Illuminate\Support\Str::limit($selectedVariant['subject'] ?? $email->generated_subject, 40),
         ]);
     }
 
@@ -228,7 +228,7 @@ class EmailGeneratorController extends Controller
 
         $variants = is_array($email->generated_variants) ? $email->generated_variants : [];
         if (empty($variants)) {
-            return back()->with('error', 'لا توجد رسائل مُولّدة لإنشاء حملة منها.');
+            return back()->with('error', __('messages.no_generated_emails'));
         }
 
         // Collect all unique recipients
@@ -244,7 +244,7 @@ class EmailGeneratorController extends Controller
             'multi_variant' => 1,
             'prefill_accounts' => $validated['account_ids'],
             'prefill_recipients' => implode("\n", $allRecipients),
-            'prefill_name' => 'حملة متعددة — ' . $email->owned_domain . ' — ' . now()->format('M d'),
+            'prefill_name' => __('generator.create_campaign_all_variants') . ' — ' . $email->owned_domain . ' — ' . now()->format('M d'),
         ]);
     }
 
@@ -254,12 +254,12 @@ class EmailGeneratorController extends Controller
     protected function getAvailableTones(): array
     {
         return [
-            'professional' => 'Professional & Polished',
-            'friendly' => 'Friendly & Warm',
-            'casual' => 'Casual & Conversational',
-            'authoritative' => 'Authoritative & Expert',
-            'curious' => 'Curious & Inquisitive',
-            'empathetic' => 'Empathetic & Understanding',
+            'professional' => __('generator.tone_professional'),
+            'friendly' => __('generator.tone_friendly'),
+            'casual' => __('generator.tone_casual'),
+            'authoritative' => __('generator.tone_authoritative'),
+            'curious' => __('generator.tone_curious'),
+            'empathetic' => __('generator.tone_empathetic'),
         ];
     }
 }

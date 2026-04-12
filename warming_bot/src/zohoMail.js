@@ -47,7 +47,7 @@ async function clickSendLater(page, scheduleDatetime) {
     const sendLaterClicked = await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll('button, a, span, div, li'));
         els.sort((a, b) => a.children.length - b.children.length); // Try leaf nodes first
-        
+
         for (const el of els) {
             const text = el.textContent.trim();
             if ((text === 'Send Later' || text.match(/Send Later/i)) && el.offsetHeight > 0) {
@@ -71,7 +71,7 @@ async function clickSendLater(page, scheduleDatetime) {
     const customClicked = await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll('li, div, span, label, a, button, td'));
         els.sort((a, b) => a.children.length - b.children.length); // Leaf nodes first
-        
+
         for (const el of els) {
             const text = el.textContent?.trim() || '';
             if (text.match(/Custom Date/i) && el.offsetHeight > 0) {
@@ -81,7 +81,7 @@ async function clickSendLater(page, scheduleDatetime) {
                 }
             }
         }
-        
+
         const radios = document.querySelectorAll('input[type="radio"]');
         if (radios.length > 0) {
             radios[radios.length - 1].click();
@@ -101,13 +101,13 @@ async function clickSendLater(page, scheduleDatetime) {
     let diffDays = 0;
     try {
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
         const targetDateObj = new Date(year, parseInt(month, 10) - 1, day);
-        targetDateObj.setHours(0,0,0,0);
-        
+        targetDateObj.setHours(0, 0, 0, 0);
+
         diffDays = Math.round((targetDateObj - today) / 86400000);
         if (diffDays < 0) diffDays = 0;
-    } catch (e) {}
+    } catch (e) { }
 
     const [hoursStr, minutesStr] = formattedTime.split(':');
     log(`   → Keyboard Sequence: Date(+${diffDays} days), Time(${hoursStr}:${minutesStr})`);
@@ -118,21 +118,21 @@ async function clickSendLater(page, scheduleDatetime) {
             radios[radios.length - 1].focus();
         }
     });
-    
+
     await sleep(400);
 
     // 1. Tab to Date Field
     await page.keyboard.press('Tab');
     await sleep(400);
-    
+
     await page.keyboard.press('Space');
     await sleep(600);
-    
+
     for (let i = 0; i < diffDays; i++) {
         await page.keyboard.press('ArrowRight');
         await sleep(150);
     }
-    
+
     await page.keyboard.press('Space');
     await sleep(500);
 
@@ -151,7 +151,7 @@ async function clickSendLater(page, scheduleDatetime) {
     // 4. Tab to Timezone
     await page.keyboard.press('Tab');
     await sleep(300);
-    
+
     log(`   ✓ Form filled via Tab navigation!`);
     await sleep(500);
 
@@ -253,10 +253,10 @@ async function fillBodyField(page, bodyText) {
                     }, htmlBody);
                     return true;
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
-    } catch (e) {}
-    
+    } catch (e) { }
+
     // Keyboard fallback
     try {
         await page.keyboard.press('Tab');
@@ -272,7 +272,7 @@ async function fillBodyField(page, bodyText) {
             }
         }
         return true;
-    } catch (e) {}
+    } catch (e) { }
 
     return false;
 }
@@ -324,13 +324,13 @@ async function sendViaZoho(job, effectiveMode, cliManual, cliSkipFill, isHeadles
 
         page = await b.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36');
-        
+
         log('   → Opening Zoho Mail...');
         await api.pushBotLog('composing', 'Opening Zoho Mail...', log_id);
         await page.goto('https://mail.zoho.com/zm/', { waitUntil: 'networkidle2', timeout: 45000 });
 
         if (!page.url().includes('/zm')) throw new Error('Session expired — re-login required');
-        
+
         log('   ✓ Logged in');
         await sleep(randomInt(1500, 2500));
 
@@ -342,19 +342,36 @@ async function sendViaZoho(job, effectiveMode, cliManual, cliSkipFill, isHeadles
             await sleep(3000);
 
             log('   → Searching for recipient and original subject...');
-            const searchSuccess = await page.evaluate((args) => {
-                const searchInput = document.querySelector('#SQZMMD_Search') || document.querySelector('input.mswBox') || document.querySelector('input[placeholder*="Search"]');
-                if (searchInput) {
-                    let query = 'to:' + args.rec;
-                    if (args.sub) query += ' subject:"' + args.sub + '"';
-                    searchInput.value = query;
-                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    searchInput.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter', keyCode: 13 }));
-                    searchInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter', keyCode: 13 }));
-                    return true;
+            let searchSuccess = false;
+            try {
+                const searchInputSel = '#SQZMMD_Search, input.mswBox, input[placeholder*="Search"]';
+                await page.waitForSelector(searchInputSel, { timeout: 10000 });
+                await page.click(searchInputSel);
+                await sleep(500);
+
+                // Clear input first
+                await page.keyboard.down('Control');
+                await page.keyboard.press('a');
+                await page.keyboard.up('Control');
+                await page.keyboard.press('Backspace');
+                await sleep(300);
+
+                // Type the "to" filter
+                await page.keyboard.type('to:' + recipient, { delay: 50 });
+                await sleep(300);
+                await page.keyboard.press('Enter');
+                await sleep(800);
+
+                if (job.original_subject) {
+                    await page.keyboard.type('subject:' + job.original_subject, { delay: 50 });
+                    await sleep(300);
+                    await page.keyboard.press('Enter');
                 }
-                return false;
-            }, { rec: recipient, sub: job.original_subject });
+
+                searchSuccess = true;
+            } catch (e) {
+                searchSuccess = false;
+            }
 
             if (!searchSuccess) {
                 let fallbackHash = `to:${recipient}`;
@@ -371,26 +388,34 @@ async function sendViaZoho(job, effectiveMode, cliManual, cliSkipFill, isHeadles
                 return false;
             });
 
-            if (!opened) throw new Error("Could not find the original email in search results. Cannot reply.");
-            await sleep(4000);
+            if (!opened) {
+                log('   ⚠️ Could not find original email in search. Falling back to new compose...');
+                job.is_followup = false; // Override internally to trigger compose field logic later
+                await page.goto('https://mail.zoho.com/zm/#compose', { waitUntil: 'networkidle2', timeout: 30000 });
+                await sleep(3000);
+            } else {
+                await sleep(4000);
 
-            log('   → Clicking Reply...');
-            const replyClicked = await page.evaluate(() => {
-                for (const sel of ['[data-do="reply"]', '[data-action="reply"]', 'span[title="Reply"]', 'button[title="Reply"]']) {
-                    const el = document.querySelector(sel);
-                    if (el) { el.click(); return true; }
-                }
-                const btns = document.querySelectorAll('button, a, span, div');
-                for (let b of btns) {
-                    const txt = b.textContent.trim().toLowerCase();
-                    if (txt === 'reply' || txt === 'رد') { b.click(); return true; }
-                }
-                return false;
-            });
+                log('   → Clicking Reply...');
+                const replyClicked = await page.evaluate(() => {
+                    for (const sel of ['[data-do="reply"]', '[data-action="reply"]', 'span[title="Reply"]', 'button[title="Reply"]']) {
+                        const el = document.querySelector(sel);
+                        if (el) { el.click(); return true; }
+                    }
+                    const btns = document.querySelectorAll('button, a, span, div');
+                    for (let b of btns) {
+                        const txt = b.textContent.trim().toLowerCase();
+                        if (txt === 'reply' || txt === 'رد') { b.click(); return true; }
+                    }
+                    return false;
+                });
 
-            if (!replyClicked) throw new Error("Could not find 'Reply' button");
-            await sleep(3000);
-        } else {
+                if (!replyClicked) throw new Error("Could not find 'Reply' button");
+                await sleep(3000);
+            }
+        }
+
+        if (!job.is_followup && !page.url().includes('#compose')) {
             log('   → Opening compose...');
             const composeClicked = await page.evaluate(() => {
                 const btns = document.querySelectorAll('button, a, [role="button"], span');
@@ -459,7 +484,7 @@ async function sendViaZoho(job, effectiveMode, cliManual, cliSkipFill, isHeadles
                 await waitForUserSend(page, log_id);
             }
         }
-        
+
         await page.close();
         return true;
 
@@ -467,8 +492,8 @@ async function sendViaZoho(job, effectiveMode, cliManual, cliSkipFill, isHeadles
         error(`Failed to send job #${log_id}`, err);
         await api.reportResult(log_id, 'failed', err.message);
         await api.pushBotLog('failed', `Error: ${err.message}`, log_id);
-        
-        if (page) try { await page.close(); } catch (e) {}
+
+        if (page) try { await page.close(); } catch (e) { }
         throw err;
     }
 }

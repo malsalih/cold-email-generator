@@ -9,7 +9,7 @@ echo.
 
 echo  [1/4] Starting ML Service (Spam Filter + Text Generator)...
 echo        Port: 5050  ^|  Endpoints: /predict, /generate
-start "ColdForge ML Service (Port 5050)" cmd /c "cd ml_service && python app.py"
+start "ColdForge ML Service (Port 5050)" cmd /c "cd ml_service && .\.venv\Scripts\python app.py"
 timeout /t 3 /nobreak >nul
 
 echo  [2/4] Starting Laravel Backend...

@@ -9,9 +9,42 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'Courier New', monospace;
+
+    /* Theme-aware Zinc Colors */
+    --color-surface-bg: var(--surface-bg);
+    --color-surface-card: var(--surface-card);
+    --color-surface-nav: var(--surface-nav);
+    --color-surface-border: var(--surface-border);
+    --color-content-primary: var(--content-primary);
+    --color-content-secondary: var(--content-secondary);
+    --color-content-muted: var(--content-muted);
 }
 
-/* Custom scrollbar for dark theme */
+:root {
+    --surface-bg: #fafafa; /* zinc-50 */
+    --surface-card: #ffffff;
+    --surface-nav: rgba(255, 255, 255, 0.7);
+    --surface-border: #e4e4e7; /* zinc-200 */
+    --content-primary: #09090b; /* zinc-950 */
+    --content-secondary: #27272a; /* zinc-800 */
+    --content-muted: #71717a; /* zinc-500 */
+    --scrollbar-thumb: #d4d4d8; /* zinc-300 */
+    --scrollbar-hover: #a1a1aa; /* zinc-400 */
+}
+
+.dark {
+    --surface-bg: #09090b; /* zinc-950 */
+    --surface-card: #18181b; /* zinc-900 */
+    --surface-nav: rgba(9, 9, 11, 0.7);
+    --surface-border: #27272a; /* zinc-800 */
+    --content-primary: #f4f4f5; /* zinc-100 */
+    --content-secondary: #d4d4d8; /* zinc-300 */
+    --content-muted: #a1a1aa; /* zinc-400 */
+    --scrollbar-thumb: #3f3f46; /* zinc-700 */
+    --scrollbar-hover: #52525b; /* zinc-600 */
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -20,11 +53,11 @@
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #3f3f46;
+    background: var(--scrollbar-thumb);
     border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #52525b;
+    background: var(--scrollbar-hover);
 }
 
 /* Range input styling for dark theme */

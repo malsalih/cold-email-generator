@@ -27,6 +27,14 @@ Route::delete('/history/{email}', [EmailGeneratorController::class, 'destroy'])-
 
 // ═══════════════════════════════════════════
 // CAMPAIGNS
+// Language Switcher
+Route::get('lang/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'ar'])) {
+        session()->put('locale', $locale);
+    }
+    return back();
+})->name('lang.switch');
+
 // ═══════════════════════════════════════════
 
 Route::prefix('campaigns')->name('campaigns.')->controller(CampaignController::class)->group(function () {

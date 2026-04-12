@@ -1,0 +1,53 @@
+<?php
+
+return [
+    // Campaign Messages
+    'invalid_emails' => 'لم يتم العثور على إيميلات صالحة.',
+    'campaign_created' => 'تم إنشاء الحملة! :count رسالة مُجدولة عبر Send Later.',
+    'campaign_status_error' => 'لا يمكن تشغيل قيد بحالة: :status',
+    'campaign_launched' => '🚀 تم تشغيل الحملة بقوة المتوازي عبر :accounts حساب(ات)! البوت يجدول الإيميلات حالياً.',
+    'complete_before_followup' => 'يجب أن تكتمل الحملة أولاً قبل إرسال Follow-Up.',
+    'followup_created' => 'تم إنشاء Follow-Up #:number — :recipients مستلم.',
+    'campaign_paused' => 'تم إيقاف الحملة مؤقتاً، وإغلاق البوت بنجاح.',
+    'campaign_resumed' => 'تم استئناف الحملة.',
+    'cannot_edit_status' => 'لا يمكن تعديل حملة قيد التشغيل أو مكتملة.',
+    'campaign_updated' => 'تم تحديث الحملة! :count رسالة أُعيد جدولتها.',
+    'campaign_deleted' => 'تم حذف الحملة.',
+
+    // Warming Messages
+    'account_added' => 'تم إضافة الحساب بنجاح. سجّل الدخول لبدء التسخين.',
+    'account_deleted' => 'تم حذف الحساب.',
+    'login_before_activate' => 'يجب تسجيل الدخول أولاً قبل تفعيل الحساب.',
+    'account_activated' => 'تم تفعيل الحساب.',
+    'account_paused' => 'تم إيقاف الحساب مؤقتاً.',
+    'bot_opened_login' => 'تم فتح نافذة المتصفح. سجّل الدخول إلى Zoho Mail. سيتم حفظ الجلسة تلقائياً.',
+    'warming_day_started' => 'تم بدء يوم التسخين :day بنجاح!',
+    'template_created' => 'تم إنشاء القالب بنجاح.',
+    'template_updated' => 'تم تحديث القالب.',
+    'template_deleted' => 'تم حذف القالب.',
+    'test_email_added' => 'تم إضافة إيميل تجريبي للإرسال. شغّل البوت لإرساله. (Log #:id)',
+    'settings_saved' => 'تم حفظ الإعدادات بنجاح.',
+    'all_emails_queued' => 'جميع الإيميلات المدخلة موجودة بالفعل في قائمة الانتظار.',
+    'ml_failed_templates' => 'فشل نموذج الذكاء الاصطناعي في الاستجابة وتوليد قوالب كافية للمستلمين (نقص بالقوالب الحصرية). يرجى المحاولة مرة أخرى.',
+    'job_requeued' => 'تم إعادة المهمة #:id إلى قائمة الانتظار.',
+    'account_inactive' => 'الحساب غير نشط.',
+    'login_first' => 'يجب تسجيل الدخول للحساب أولاً.',
+    'day_limit_reached' => 'الحساب أكمل جولة اليوم :day بالفعل (:sent/:target). سيتم الانتقال لليوم التالي غداً.',
+    'no_saved_recipients' => 'لا يوجد مستلمين محفوظين. أضف إيميلات في قسم "المستلمين المحفوظين" أولاً.',
+    'all_saved_busy' => 'جميع المستلمين المحفوظين لديهم مهام معلقة بالفعل.',
+    'ml_failed_generic' => 'فشل توليد قوالب كافية. تحقق من خدمة ML.',
+    'bot_started_manual' => '🔥 بدأت جولة اليوم :day — تم جدولة :scheduled رسالة من أصل :target مطلوبة. البوت يعمل (وضع يدوي).',
+    'bot_started' => 'تم تشغيل البوت! راقب نافذة Terminal لرؤية كل ما يحدث.',
+    'bot_stopped' => 'تم إيقاف البوت.',
+    'recipients_saved' => 'تم حفظ :count مستلم.',
+    'recipient_deleted' => 'تم حذف المستلم.',
+
+    // Generator Messages
+    'email_generated' => 'تم توليد الإيميل بنجاح!',
+    'email_deleted' => 'تم حذف سجل الإيميل بنجاح.',
+    'no_generated_emails' => 'لا توجد رسائل مُولّدة لإنشاء حملة منها.',
+    'zoho_browser_opened' => 'تم فتح متصفح Zoho — سجّل الدخول فيه.',
+    'warming_scheduled' => 'تم جدولة :count رسالة تسخين لحساب :email. البوت يعمل في نافذة Terminal (وضع يدوي).',
+    'skipped_duplicates' => ' تم تخطي :count إيميل مكرر.',
+    'error_label' => 'خطأ: ',
+];

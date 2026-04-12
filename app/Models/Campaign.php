@@ -102,6 +102,23 @@ class Campaign extends Model
 
     // ─── Accessors ───────────────────────────────────
 
+    public function getPendingCountAttribute(): int
+    {
+        return max(0, $this->total_recipients - $this->sent_count - $this->failed_count);
+    }
+
+    public function getSentPercentAttribute(): int
+    {
+        if ($this->total_recipients === 0) return 0;
+        return (int) round(($this->sent_count / $this->total_recipients) * 100);
+    }
+
+    public function getFailedPercentAttribute(): int
+    {
+        if ($this->total_recipients === 0) return 0;
+        return (int) round(($this->failed_count / $this->total_recipients) * 100);
+    }
+
     public function getProgressPercentAttribute(): int
     {
         if ($this->total_recipients === 0) return 0;
@@ -266,13 +283,13 @@ class Campaign extends Model
     }
 
     /**
-     * Get recipients who haven't been replied to (for follow-up).
-     * Returns all sent recipients — user selects who didn't reply.
+     * Get recipients who have been processed (sent or failed) to allow follow-up.
+     * Returns all processed recipients — user selects who didn't reply.
      */
     public function getSentRecipients(): array
     {
         return $this->logs()
-            ->where('status', 'sent')
+            ->whereIn('status', ['sent', 'failed'])
             ->pluck('recipient_email')
             ->unique()
             ->values()

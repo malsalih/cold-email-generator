@@ -73,14 +73,14 @@ class WarmingController extends Controller
         ]);
 
         return redirect()->route('warming.accounts')
-            ->with('success', 'تم إضافة الحساب بنجاح. سجّل الدخول لبدء التسخين.');
+            ->with('success', __('messages.account_added'));
     }
 
     public function deleteAccount(WarmingAccount $account)
     {
         $account->delete();
         return redirect()->route('warming.accounts')
-            ->with('success', 'تم حذف الحساب.');
+            ->with('success', __('messages.account_deleted'));
     }
 
     public function toggleAccount(WarmingAccount $account)
@@ -88,7 +88,7 @@ class WarmingController extends Controller
         $newStatus = $account->status === 'active' ? 'paused' : 'active';
 
         if ($newStatus === 'active' && !$account->is_logged_in) {
-            return back()->with('error', 'يجب تسجيل الدخول أولاً قبل تفعيل الحساب.');
+            return back()->with('error', __('messages.login_before_activate'));
         }
 
         $account->update([
@@ -105,7 +105,7 @@ class WarmingController extends Controller
             ]);
         }
 
-        return back()->with('success', $newStatus === 'active' ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب مؤقتاً.');
+        return back()->with('success', $newStatus === 'active' ? __('messages.account_activated') : __('messages.account_paused'));
     }
 
     /**
@@ -134,11 +134,11 @@ class WarmingController extends Controller
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'تم فتح متصفح Zoho — سجّل الدخول فيه.',
+                'message' => __('messages.zoho_browser_opened'),
             ]);
         }
 
-        return back()->with('success', 'تم فتح نافذة المتصفح. سجّل الدخول إلى Zoho Mail. سيتم حفظ الجلسة تلقائياً.');
+        return back()->with('success', __('messages.bot_opened_login'));
     }
 
     /**
@@ -157,7 +157,7 @@ class WarmingController extends Controller
             'daily_limit' => $strategy->getDailyLimitForDay($account->warming_day),
         ]);
 
-        return back()->with('success', "تم بدء يوم التسخين {$account->warming_day} بنجاح!");
+        return back()->with('success', __('messages.warming_day_started', ['day' => $account->warming_day]));
     }
 
     // ─── TEMPLATES ───────────────────────────────────────────────
@@ -188,7 +188,7 @@ class WarmingController extends Controller
         ]);
 
         return redirect()->route('warming.templates')
-            ->with('success', 'تم إنشاء القالب بنجاح.');
+            ->with('success', __('messages.template_created'));
     }
 
     public function updateTemplate(Request $request, WarmingTemplate $template)
@@ -211,14 +211,14 @@ class WarmingController extends Controller
         ]);
 
         return redirect()->route('warming.templates')
-            ->with('success', 'تم تحديث القالب.');
+            ->with('success', __('messages.template_updated'));
     }
 
     public function deleteTemplate(WarmingTemplate $template)
     {
         $template->delete();
         return redirect()->route('warming.templates')
-            ->with('success', 'تم حذف القالب.');
+            ->with('success', __('messages.template_deleted'));
     }
 
     // ─── STRATEGIES ──────────────────────────────────────────────
@@ -277,7 +277,7 @@ class WarmingController extends Controller
             'source_type' => 'warming',
         ]);
 
-        return back()->with('success', "تم إضافة إيميل تجريبي للإرسال. شغّل البوت لإرساله. (Log #{$log->id})");
+        return back()->with('success', __('messages.test_email_added', ['id' => $log->id]));
     }
 
     // ─── SETTINGS & QUICK START ──────────────────────────────────
@@ -298,7 +298,7 @@ class WarmingController extends Controller
 
         \App\Models\WarmingSetting::setValue('send_mode', $validated['send_mode']);
 
-        return back()->with('success', 'تم حفظ الإعدادات بنجاح.');
+        return back()->with('success', __('messages.settings_saved'));
     }
 
     public function quickStartWarming(Request $request)
@@ -320,7 +320,7 @@ class WarmingController extends Controller
         )));
 
         if (empty($recipients)) {
-            return back()->with('error', 'لم يتم العثور على إيميلات صالحة.');
+            return back()->with('error', __('messages.invalid_emails'));
         }
 
         // Filter out recipients that already have pending/processing jobs
@@ -333,7 +333,7 @@ class WarmingController extends Controller
         $recipients = array_values(array_diff($recipients, $existingPending));
         
         if (empty($recipients)) {
-            return back()->with('error', 'جميع الإيميلات المدخلة موجودة بالفعل في قائمة الانتظار.');
+            return back()->with('error', __('messages.all_emails_queued'));
         }
 
         $skippedCount = count($existingPending);
@@ -356,7 +356,7 @@ class WarmingController extends Controller
 
         // Failsafe if API failed to generate enough
         if ($availableTemplates->count() < $neededTemplatesCount) {
-            return back()->with('error', 'فشل نموذج الذكاء الاصطناعي في الاستجابة وتوليد قوالب كافية للمستلمين (نقص بالقوالب الحصرية). يرجى المحاولة مرة أخرى.');
+            return back()->with('error', __('messages.ml_failed_templates'));
         }
 
         $now = now();
@@ -412,9 +412,9 @@ class WarmingController extends Controller
             exec("{$command} 2>&1 | tee -a warming_bot.log &");
         }
 
-        $msg = "تم جدولة " . count($recipients) . " رسالة تسخين لحساب {$account->email}. البوت يعمل في نافذة Terminal (وضع يدوي).";
+        $msg = __('messages.warming_scheduled', ['count' => count($recipients), 'email' => $account->email]);
         if ($skippedCount > 0) {
-            $msg .= " تم تخطي {$skippedCount} إيميل مكرر.";
+            $msg .= __('messages.skipped_duplicates', ['count' => $skippedCount]);
         }
         return back()->with('success', $msg);
     }
@@ -436,7 +436,7 @@ class WarmingController extends Controller
             }
         }
 
-        return back()->with('success', "تم إعادة المهمة #{$log->id} إلى قائمة الانتظار.");
+        return back()->with('success', __('messages.job_requeued', ['id' => $log->id]));
     }
 
     // ─── DAILY ROUND ────────────────────────────────────────────
@@ -447,10 +447,10 @@ class WarmingController extends Controller
 
         // Check account is ready
         if ($account->status !== 'active') {
-            return back()->with('error', 'الحساب غير نشط.');
+            return back()->with('error', __('messages.account_inactive'));
         }
         if (!$account->is_logged_in) {
-            return back()->with('error', 'يجب تسجيل الدخول للحساب أولاً.');
+            return back()->with('error', __('messages.login_first'));
         }
 
         // Get strategy and today's target
@@ -460,13 +460,13 @@ class WarmingController extends Controller
         $remaining = max(0, $todayTarget - $alreadySent);
 
         if ($remaining === 0) {
-            return back()->with('error', "الحساب أكمل جولة اليوم {$account->warming_day} بالفعل ({$alreadySent}/{$todayTarget}). سيتم الانتقال لليوم التالي غداً.");
+            return back()->with('error', __('messages.day_limit_reached', ['day' => $account->warming_day, 'sent' => $alreadySent, 'target' => $todayTarget]));
         }
 
         // Get saved recipients
         $savedRecipients = \App\Models\WarmingRecipient::pluck('email')->toArray();
         if (empty($savedRecipients)) {
-            return back()->with('error', 'لا يوجد مستلمين محفوظين. أضف إيميلات في قسم "المستلمين المحفوظين" أولاً.');
+            return back()->with('error', __('messages.no_saved_recipients'));
         }
 
         // Filter out recipients with pending/processing jobs
@@ -477,7 +477,7 @@ class WarmingController extends Controller
         $availableRecipients = array_values(array_diff($savedRecipients, $busyRecipients));
 
         if (empty($availableRecipients)) {
-            return back()->with('error', 'جميع المستلمين المحفوظين لديهم مهام معلقة بالفعل.');
+            return back()->with('error', __('messages.all_saved_busy'));
         }
 
         // Shuffle and pick recipients randomly (cycle through if not enough)
@@ -496,7 +496,7 @@ class WarmingController extends Controller
         }
 
         if ($availableTemplates->isEmpty()) {
-            return back()->with('error', 'فشل توليد قوالب كافية. تحقق من خدمة ML.');
+            return back()->with('error', __('messages.ml_failed_generic'));
         }
 
         // Schedule the jobs with delays from strategy
@@ -541,7 +541,7 @@ class WarmingController extends Controller
             exec("{$command} 2>&1 | tee -a warming_bot.log &");
         }
 
-        return back()->with('success', "🔥 بدأت جولة اليوم {$account->warming_day} — تم جدولة {$scheduled} رسالة من أصل {$todayTarget} مطلوبة. البوت يعمل (وضع يدوي).");
+        return back()->with('success', __('messages.bot_started_manual', ['day' => $account->warming_day, 'scheduled' => $scheduled, 'target' => $todayTarget]));
     }
 
     // ─── BOT CONTROL ────────────────────────────────────────────
@@ -567,7 +567,7 @@ class WarmingController extends Controller
             exec("{$command} 2>&1 | tee -a warming_bot.log &");
         }
 
-        return back()->with('success', 'تم تشغيل البوت! راقب نافذة Terminal لرؤية كل ما يحدث.');
+        return back()->with('success', __('messages.bot_started'));
     }
 
     public function stopBot()
@@ -579,7 +579,7 @@ class WarmingController extends Controller
             exec("pkill -f 'node.*bot.js' 2>/dev/null");
         }
 
-        return back()->with('success', 'تم إيقاف البوت.');
+        return back()->with('success', __('messages.bot_stopped'));
     }
 
     // ─── SAVED RECIPIENTS ───────────────────────────────────────
@@ -606,12 +606,12 @@ class WarmingController extends Controller
             $saved++;
         }
 
-        return back()->with('success', "تم حفظ {$saved} مستلم.");
+        return back()->with('success', __('messages.recipients_saved', ['count' => $saved]));
     }
 
     public function deleteRecipient(\App\Models\WarmingRecipient $recipient)
     {
         $recipient->delete();
-        return back()->with('success', 'تم حذف المستلم.');
+        return back()->with('success', __('messages.recipient_deleted'));
     }
 }

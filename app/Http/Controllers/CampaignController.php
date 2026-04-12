@@ -91,14 +91,14 @@ class CampaignController extends Controller
             'followup_wait_days' => 'nullable|integer|min:1|max:30',
             'max_followups' => 'nullable|integer|min:1|max:5',
         ], [
-            'name.required' => 'اسم الحملة مطلوب',
-            'warming_account_ids.required' => 'اختر حساب إرسال واحد على الأقل',
-            'recipients_text.required' => 'أدخل إيميلات المستلمين',
-            'send_start_date.required' => 'حدد تاريخ بدء الإرسال',
-            'send_start_time.required' => 'حدد ساعة البدء',
-            'send_end_time.required' => 'حدد ساعة الانتهاء',
-            'send_end_time.after' => 'ساعة الانتهاء يجب أن تكون بعد ساعة البدء',
-            'max_delay_minutes.gte' => 'أقصى تأخير يجب أن يكون أكبر أو يساوي أقل تأخير',
+            'name.required' => __('validation.required', ['attribute' => __('campaign.campaign_name')]),
+            'warming_account_ids.required' => __('validation.required', ['attribute' => __('campaign.sending_accounts')]),
+            'recipients_text.required' => __('validation.required', ['attribute' => __('campaign.target_recipients')]),
+            'send_start_date.required' => __('validation.required', ['attribute' => __('campaign.start_send_date')]),
+            'send_start_time.required' => __('validation.required', ['attribute' => __('campaign.start_send_time')]),
+            'send_end_time.required' => __('validation.required', ['attribute' => __('campaign.end_send_time')]),
+            'send_end_time.after' => __('validation.after', ['attribute' => __('campaign.end_send_time'), 'date' => __('campaign.start_send_time')]),
+            'max_delay_minutes.gte' => __('validation.gte.numeric', ['attribute' => __('campaign.max_delay'), 'value' => __('campaign.min_delay')]),
         ]);
 
         // Parse recipients
@@ -108,7 +108,7 @@ class CampaignController extends Controller
         )));
 
         if (empty($recipients)) {
-            return back()->withInput()->with('error', 'لم يتم العثور على إيميلات صالحة.');
+            return back()->withInput()->with('error', __('messages.invalid_emails'));
         }
 
         // Resolve subject/body
@@ -160,7 +160,7 @@ class CampaignController extends Controller
         $campaign->createScheduledLogs();
 
         return redirect()->route('campaigns.show', $campaign)
-            ->with('success', "تم إنشاء الحملة! {$campaign->total_recipients} رسالة مُجدولة عبر Send Later.");
+            ->with('success', __('messages.campaign_created', ['count' => $campaign->total_recipients]));
     }
 
     /**
@@ -182,7 +182,7 @@ class CampaignController extends Controller
     public function launch(Campaign $campaign)
     {
         if (!in_array($campaign->status, ['draft', 'scheduled'])) {
-            return back()->with('error', 'لا يمكن تشغيل حملة بحالة: ' . $campaign->status_label);
+            return back()->with('error', __('messages.campaign_status_error', ['status' => $campaign->status_label]));
         }
 
         $campaign->update(['status' => 'running']);
@@ -212,7 +212,7 @@ class CampaignController extends Controller
             }
         }
 
-        return back()->with('success', "🚀 تم تشغيل الحملة بقوة المتوازي عبر " . count($accounts) . " حساب(ات)! البوت يجدول الإيميلات حالياً.");
+        return back()->with('success', __('messages.campaign_launched', ['accounts' => count($accounts)]));
     }
 
     /**
@@ -221,13 +221,18 @@ class CampaignController extends Controller
     public function createFollowUp(Campaign $campaign)
     {
         if ($campaign->status !== 'completed') {
-            return back()->with('error', 'يجب أن تكتمل الحملة أولاً قبل إرسال Follow-Up.');
+            return back()->with('error', __('messages.complete_before_followup'));
         }
 
-        $sentRecipients = $campaign->getSentRecipients();
-        $followedUp = $campaign->getFollowedUpRecipients();
-        $availableRecipients = array_values(array_diff($sentRecipients, $followedUp));
         $nextFollowUpNumber = $campaign->followUps()->count() + 1;
+
+        if ($nextFollowUpNumber === 1) {
+            $availableRecipients = $campaign->getSentRecipients();
+        } else {
+            // Sequential chaining: Follow-up #2 goes to recipients of Follow-up #1, and so on.
+            $lastFollowUp = $campaign->followUps()->orderBy('followup_number', 'desc')->first();
+            $availableRecipients = $lastFollowUp ? $lastFollowUp->getSentRecipients() : [];
+        }
 
         return view('campaigns.follow_up', compact('campaign', 'availableRecipients', 'nextFollowUpNumber'));
     }
@@ -237,17 +242,21 @@ class CampaignController extends Controller
      */
     public function storeFollowUp(Request $request, Campaign $campaign)
     {
-        $validated = $request->validate([
-            'custom_subject' => 'required|string|max:500',
-            'custom_body' => 'required|string',
-            'selected_recipients' => 'required|array|min:1',
-            'selected_recipients.*' => 'email',
-            'send_start_date' => 'required|date|after_or_equal:today',
-            'send_start_time' => 'required|date_format:H:i',
-            'send_end_time' => 'required|date_format:H:i|after:send_start_time',
-            'min_delay_minutes' => 'required|integer|min:2|max:60',
-            'max_delay_minutes' => 'required|integer|min:2|max:120|gte:min_delay_minutes',
-        ]);
+        try {
+            $validated = $request->validate([
+                'custom_subject' => 'required|string|max:500',
+                'custom_body' => 'required|string',
+                'selected_recipients' => 'required|array|min:1',
+                'selected_recipients.*' => 'email',
+                'send_start_date' => 'required|date|after_or_equal:today',
+                'send_start_time' => 'required',
+                'send_end_time' => 'required',
+                'min_delay_minutes' => 'required|integer|min:2|max:60',
+                'max_delay_minutes' => 'required|integer|min:2|max:120|gte:min_delay_minutes',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            dd($e->errors(), $request->all());
+        }
 
         $nextNumber = $campaign->followUps()->count() + 1;
 
@@ -273,7 +282,7 @@ class CampaignController extends Controller
         $followUp->createScheduledLogs();
 
         return redirect()->route('campaigns.show', $followUp)
-            ->with('success', "تم إنشاء Follow-Up #{$nextNumber} — {$followUp->total_recipients} مستلم.");
+            ->with('success', __('messages.followup_created', ['number' => $nextNumber, 'recipients' => $followUp->total_recipients]));
     }
 
     /**
@@ -294,7 +303,7 @@ class CampaignController extends Controller
             }
         }
 
-        return back()->with('success', 'تم إيقاف الحملة مؤقتاً، وإغلاق البوت بنجاح.');
+        return back()->with('success', __('messages.campaign_paused'));
     }
 
     /**
@@ -310,7 +319,7 @@ class CampaignController extends Controller
             return $this->launch($campaign);
         }
 
-        return back()->with('success', 'تم استئناف الحملة.');
+        return back()->with('success', __('messages.campaign_resumed'));
     }
 
     /**
@@ -319,7 +328,7 @@ class CampaignController extends Controller
     public function edit(Campaign $campaign)
     {
         if (!in_array($campaign->status, ['draft', 'scheduled'])) {
-            return back()->with('error', 'لا يمكن تعديل حملة قيد التشغيل أو مكتملة.');
+            return back()->with('error', __('messages.cannot_edit_status'));
         }
 
         $accounts = WarmingAccount::ready()->get();
@@ -334,7 +343,7 @@ class CampaignController extends Controller
     public function update(Request $request, Campaign $campaign)
     {
         if (!in_array($campaign->status, ['draft', 'scheduled'])) {
-            return back()->with('error', 'لا يمكن تعديل حملة قيد التشغيل أو مكتملة.');
+            return back()->with('error', __('messages.cannot_edit_status'));
         }
 
         $validated = $request->validate([
@@ -362,7 +371,7 @@ class CampaignController extends Controller
         )));
 
         if (empty($recipients)) {
-            return back()->withInput()->with('error', 'لم يتم العثور على إيميلات صالحة.');
+            return back()->withInput()->with('error', __('messages.invalid_emails'));
         }
 
         $campaign->update([
@@ -389,7 +398,7 @@ class CampaignController extends Controller
         $campaign->createScheduledLogs();
 
         return redirect()->route('campaigns.show', $campaign)
-            ->with('success', "تم تحديث الحملة! {$campaign->total_recipients} رسالة أُعيد جدولتها.");
+            ->with('success', __('messages.campaign_updated', ['count' => $campaign->total_recipients]));
     }
 
     /**
@@ -401,7 +410,7 @@ class CampaignController extends Controller
         $campaign->delete();
 
         return redirect()->route('campaigns.index')
-            ->with('success', 'تم حذف الحملة.');
+            ->with('success', __('messages.campaign_deleted'));
     }
 
     /**
@@ -415,7 +424,7 @@ class CampaignController extends Controller
         if (empty($originalSubject) || empty($originalBody)) {
             return response()->json([
                 'success' => false,
-                'error' => 'لا يمكن إنشاء متابعة — الرسالة الأصلية غير متوفرة.',
+                'error' => __('campaign.error_no_original'),
             ]);
         }
 
@@ -436,12 +445,12 @@ class CampaignController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => $result['error'] ?? 'فشل في إنشاء رسالة المتابعة.',
+                'error' => $result['error'] ?? __('campaign.error_generation_failed'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'خطأ: ' . $e->getMessage(),
+                'error' => __('messages.error_label') . $e->getMessage(),
             ]);
         }
     }

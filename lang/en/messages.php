@@ -1,0 +1,53 @@
+<?php
+
+return [
+    // Campaign Messages
+    'invalid_emails' => 'No valid emails found.',
+    'campaign_created' => 'Campaign created! :count messages scheduled via Send Later.',
+    'campaign_status_error' => 'Cannot launch campaign with status: :status',
+    'campaign_launched' => '🚀 Campaign launched effectively via :accounts account(s)! Bot is currently scheduling emails.',
+    'complete_before_followup' => 'Campaign must be completed before sending a Follow-Up.',
+    'followup_created' => 'Follow-Up #:number created — :recipients recipients.',
+    'campaign_paused' => 'Campaign paused temporarily, and bot closed successfully.',
+    'campaign_resumed' => 'Campaign resumed.',
+    'cannot_edit_status' => 'Cannot edit a running or completed campaign.',
+    'campaign_updated' => 'Campaign updated! :count messages rescheduled.',
+    'campaign_deleted' => 'Campaign deleted.',
+
+    // Warming Messages
+    'account_added' => 'Account added successfully. Please login to start warming.',
+    'account_deleted' => 'Account deleted.',
+    'login_before_activate' => 'You must login first before activating the account.',
+    'account_activated' => 'Account activated.',
+    'account_paused' => 'Account paused temporarily.',
+    'bot_opened_login' => 'Browser window opened. Log into Zoho Mail. Session will be saved automatically.',
+    'warming_day_started' => 'Warming day :day started successfully!',
+    'template_created' => 'Template created successfully.',
+    'template_updated' => 'Template updated.',
+    'template_deleted' => 'Template deleted.',
+    'test_email_added' => 'Test email added for sending. Start the bot to send it. (Log #:id)',
+    'settings_saved' => 'Settings saved successfully.',
+    'all_emails_queued' => 'All inputted emails are already in the queue.',
+    'ml_failed_templates' => 'AI model failed to respond and generate enough templates for the recipients. Please try again.',
+    'job_requeued' => 'Job #:id requeued.',
+    'account_inactive' => 'Account is inactive.',
+    'login_first' => 'You must log into the account first.',
+    'day_limit_reached' => 'Account has already completed today\'s round :day (:sent/:target). Will proceed to the next day tomorrow.',
+    'no_saved_recipients' => 'No saved recipients. Add emails in the "Saved Recipients" section first.',
+    'all_saved_busy' => 'All saved recipients already have pending jobs.',
+    'ml_failed_generic' => 'Failed to generate enough templates. Check the ML service.',
+    'bot_started_manual' => '🔥 Today\'s round :day started — :scheduled messages scheduled out of :target required. Bot is running (manual mode).',
+    'bot_started' => 'Bot started! Watch the Terminal to see what happens.',
+    'bot_stopped' => 'Bot stopped.',
+    'recipients_saved' => ':count recipients saved.',
+    'recipient_deleted' => 'Recipient deleted.',
+
+    // Generator Messages
+    'email_generated' => 'Email generated successfully!',
+    'email_deleted' => 'Email record deleted successfully.',
+    'no_generated_emails' => 'No generated emails available to create a campaign.',
+    'zoho_browser_opened' => 'Zoho browser opened — please login there.',
+    'warming_scheduled' => ':count warming emails scheduled for :email. Bot is running (manual mode).',
+    'skipped_duplicates' => ' Skipped :count duplicate emails.',
+    'error_label' => 'Error: ',
+];

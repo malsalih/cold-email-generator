@@ -51,6 +51,14 @@
                     @error('owned_domain')
                         <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
                     @enderror
+                    <div class="space-y-2 mt-4 pt-4 border-t border-surface-border">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-content-primary">{{ __('generator.domain_niche') }}</label>
+                            <span class="text-[11px] text-content-muted">{{ __('generator.domain_niche_desc') }}</span>
+                        </div>
+                        <input type="text" name="domain_niche" value="{{ old('domain_niche') }}" placeholder="e.g., Cleaning, shopping"
+                               class="w-full px-4 py-2 bg-surface-bg border border-surface-border rounded-xl text-content-primary placeholder-content-muted text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all text-left" dir="ltr">
+                    </div>
 
                     {{-- Target Website --}}
                     <div class="space-y-2 mt-4 pt-4 border-t border-surface-border">

@@ -9,6 +9,8 @@ return [
     // Form Labels
     'owned_domain' => 'النطاق المملوك',
     'owned_domain_desc' => 'النطاق المميز الذي تقوم ببيعه',
+    'domain_niche' => 'مجال النطاق',
+    'domain_niche_desc' => 'نيتش النطاق',
     'target_website' => 'موقع الهدف (اختياري)',
     'target_website_desc' => 'الموقع الحالي للعميل المحتمل (الأقل جودة)',
     'your_instructions' => 'تعليماتك',

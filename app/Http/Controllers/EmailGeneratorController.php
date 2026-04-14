@@ -39,6 +39,7 @@ class EmailGeneratorController extends Controller
             'target_website' => 'nullable|string|max:255',
             'target_emails' => 'nullable|string|max:10000',
             'max_emails' => 'required|integer|min:1|max:50',
+            'domain_niche' => 'nullable|string|max:100',
             'instructions' => 'required|string|min:10|max:2000',
             'tone' => 'required|string|in:' . implode(',', array_keys($this->getAvailableTones())),
         ], [
@@ -84,6 +85,7 @@ class EmailGeneratorController extends Controller
                 'owned_domain' => $ownedDomain,
                 'target_website' => $targetWebsite,
                 'instructions' => $validated['instructions'],
+                'domain_niche' => $request->domain_niche ?? 'General Business',
                 'tone' => $validated['tone'],
                 'target_emails' => $targetEmails,
                 'max_emails' => (int) $validated['max_emails'],
@@ -93,9 +95,10 @@ class EmailGeneratorController extends Controller
             $emailRecord = GeneratedEmail::create([
                 'target_domain' => $targetWebsite ?? 'N/A',
                 'owned_domain' => $validated['owned_domain'],
-                'target_website' => $validated['target_website'] ?? null,
+                'target_website' => $targetWebsite,
                 'target_emails' => $targetEmails,
                 'user_instructions' => $validated['instructions'],
+                'product_service' => $request->domain_niche ?? 'General Business',
                 'tone' => $validated['tone'],
                 'system_prompt' => $result['system_prompt'],
                 'full_prompt_sent' => $result['full_prompt'],

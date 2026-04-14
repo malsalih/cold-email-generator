@@ -49,10 +49,20 @@
                 <p class="text-sm text-content-primary mt-1">{{ number_format($email->generation_time_ms) }}ms</p>
             </div>
         </div>
-        @if($email->target_website)
-        <div class="mt-4 pt-4 border-t border-surface-border">
-            <p class="text-[11px] text-content-muted uppercase tracking-wider">{{ __('generator.prospect_website') }}</p>
-            <p class="text-sm font-mono text-content-primary mt-1">{{ $email->target_website }}</p>
+        @if($email->target_website || $email->product_service)
+        <div class="mt-4 pt-4 border-t border-surface-border grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @if($email->target_website)
+            <div>
+                <p class="text-[11px] text-content-muted uppercase tracking-wider">{{ __('generator.prospect_website') }}</p>
+                <p class="text-sm font-mono text-content-primary mt-1">{{ $email->target_website }}</p>
+            </div>
+            @endif
+            @if($email->product_service)
+            <div>
+                <p class="text-[11px] text-content-muted uppercase tracking-wider">{{ __('generator.domain_niche') }}</p>
+                <p class="text-sm text-content-primary mt-1">{{ $email->product_service }}</p>
+            </div>
+            @endif
         </div>
         @endif
     </div>

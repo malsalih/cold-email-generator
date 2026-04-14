@@ -9,6 +9,8 @@ return [
     // Form Labels
     'owned_domain' => 'Owned Domain',
     'owned_domain_desc' => 'The premium domain you are selling',
+    'domain_niche' => 'Domain Niche',
+    'domain_niche_desc' => 'Domain Niche',
     'target_website' => 'Target Website (Optional)',
     'target_website_desc' => "The prospect's current, inferior domain",
     'your_instructions' => 'Your Instructions',

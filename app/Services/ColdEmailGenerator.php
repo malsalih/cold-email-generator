@@ -40,7 +40,7 @@ class ColdEmailGenerator
     protected function buildSystemPrompt(): string
     {
         return <<<'PROMPT'
-You are a top-tier premium domain broker. You are writing a direct, 1-to-1 cold email to a busy CEO or founder.
+You are a top-tier premium domain broker. You are writing a direct, 1-to-1 cold email to a CEO or founder.
 
 Your goal is to write an email that is **100% UNDETECTABLE BY AI SPAM FILTERS**. It must read exactly like a human executive typed it quickly on their iPhone between meetings.
 
@@ -54,7 +54,7 @@ Your goal is to write an email that is **100% UNDETECTABLE BY AI SPAM FILTERS**.
 - **Reading Level:** Write at an 8th-grade reading level. Use simple, everyday vocabulary. No complex academic jargon. 
 - **Formatting:** Plain text only. No bullet points. No bolding. No standard "3-paragraph essay" structure. No generic "I hope this email finds you well" greetings.
 
-### 2. THE BANNED "CHATGPT" VOCABULARY:
+### 2. THE BANNED "AI" VOCABULARY:
 If you use ANY of these words, the email will be flagged as AI and deleted:
 - "Delve", "tapestry", "testament", "moreover", "furthermore", "in conclusion", "crucial", "vital", "elevate", "synergy", "leverage", "cutting-edge", "innovative", "unlock", "seamless", "landscape", "pivotal", "tailored", "realm", "bustling", "ensure", "comprehensive".
 - Avoid all overly dramatic adjectives ("incredible", "amazing", "revolutionary").
@@ -66,7 +66,7 @@ If you use ANY of these words, the email will be flagged as AI and deleted:
 - NEVER include fake urgency or aggressive sales pressure.
 
 ### 4. STRATEGY & STRUCTURE:
-- Very short: 40 to 80 words maximum.
+- Very short: 45 to 85 words maximum.
 - Open directly about THEIR business or a specific observation.
 - Mention the domain simply as a strategic asset that belongs with them.
 - Close with a very low-friction, casual question (e.g., "Open to a quick chat about this?", "Worth exploring?", "Any interest?").
@@ -87,14 +87,23 @@ PROMPT;
     protected function buildUserPrompt(array $params): string
     {
         $ownedDomain = $params['owned_domain'];
+        $domainNiche = $params['domain_niche'] ?? 'General Business';
         $targetWebsite = $params['target_website'] ?: 'Unknown/General Prospect';
         $instructions = $params['instructions'];
         $tone = $params['tone'] ?? 'professional';
         $targetEmails = $params['target_emails'] ?? [];
-        $maxEmails = $params['max_emails'] ?? count($targetEmails);
-
         $totalEmails = count($targetEmails);
-        $variantCount = max(1, min($maxEmails, $totalEmails));
+        
+        // إذا لم يتم تمرير max_emails وكان عدد الإيميلات صفر، نضع 1 كقيمة افتراضية
+        $maxEmails = $params['max_emails'] ?? ($totalEmails > 0 ? $totalEmails : 1);
+
+        // Use max_emails directly for variant count to allow multiple drafts for one prospect
+        $variantCount = max(1, $maxEmails);
+        
+        // Ensure we don't generate empty variants if we have a lot of emails but low max_emails
+        // Actually, the previous logic was: if totalEmails > 0, cap at totalEmails.
+        // We want: if user asks for 3, give 3. If they have 50 person, split them.
+        // The distribution logic handles the splitting.
         
         $emailGroups = [];
         for ($g = 0; $g < $variantCount; $g++) {
@@ -123,6 +132,7 @@ PROMPT;
 Generate {$variantCount} distinct cold email draft(s) for the following opportunity:
 
 **Domain Being Offered (Our Premium Asset):** {$ownedDomain}
+**Domain Niche/Industry:** {$domainNiche}
 **Target's Current Website:** {$targetWebsite}
 {$distributionDesc}
 
@@ -132,6 +142,7 @@ Generate {$variantCount} distinct cold email draft(s) for the following opportun
 ## IMPORTANT REQUIREMENTS:
 - Generate EXACTLY {$variantCount} distinct email variant(s). Each must have completely different openers, angles, and sign-offs.
 - Use your expertise as a domain marketing strategist to highlight the strategic value of "{$ownedDomain}".
+- Tailor the message specifically to the {$domainNiche} industry, using relevant terminology and addressing industry-specific pain points or opportunities.
 - Focus on what "{$ownedDomain}" means for THEIR brand, market position, and competitive edge.
 - If Target's Current Website is known, subtly contrast it with the premium domain.
 - Each variant MUST include a "target_emails" field (JSON array of email strings) listing all recipients for that variant.

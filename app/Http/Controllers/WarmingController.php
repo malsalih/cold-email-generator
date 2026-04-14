@@ -524,21 +524,26 @@ class WarmingController extends Controller
 
         // Stop any existing bot first (prevent cross-account session conflicts)
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            exec('taskkill /F /FI "WINDOWTITLE eq ColdForge Warming Bot*" 2>nul');
+            exec('wmic process where "CommandLine like \'%warming_bot\\\\bot.js%\' and Name=\'node.exe\'" call terminate 2>nul');
+            exec('wmic process where "CommandLine like \'%warming_sessions%\' and Name=\'chrome.exe\'" call terminate 2>nul');
         } else {
             exec("pkill -f 'node.*bot.js' 2>/dev/null");
+            exec("pkill -f 'chrome.*warming_sessions' 2>/dev/null");
         }
         sleep(1); // Give it a moment to die
 
-        // Start bot locked to this account only
+        // Start bot locked to this account only, completely hidden
         $botPath = base_path('warming_bot/bot.js');
         $flags = "--loop --manual --account={$account->id}";
         $command = "node \"{$botPath}\" {$flags}";
-        $title = "ColdForge Warming Bot - {$account->email}";
+
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            pclose(popen("start \"{$title}\" cmd /K \"{$command}\"", 'r'));
+            // Run invisibly in production, normally in local environment
+            $windowStyle = app()->isProduction() ? 'Hidden' : 'Normal';
+            $psCommand = "Start-Process node -ArgumentList '\"{$botPath}\" {$flags}' -WindowStyle {$windowStyle}";
+            pclose(popen("powershell -WindowStyle Hidden -Command \"{$psCommand}\"", 'r'));
         } else {
-            exec("{$command} 2>&1 | tee -a warming_bot.log &");
+            exec("nohup {$command} > /dev/null 2>&1 &");
         }
 
         return back()->with('success', __('messages.bot_started_manual', ['day' => $account->warming_day, 'scheduled' => $scheduled, 'target' => $todayTarget]));
@@ -561,10 +566,11 @@ class WarmingController extends Controller
         $command = "node \"{$botPath}\" {$flags}";
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // /K keeps the window open so user can see all logs
-            pclose(popen("start \"ColdForge Warming Bot\" cmd /K \"{$command}\"", 'r'));
+            $windowStyle = app()->isProduction() ? 'Hidden' : 'Normal';
+            $psCommand = "Start-Process node -ArgumentList '\"{$botPath}\" {$flags}' -WindowStyle {$windowStyle}";
+            pclose(popen("powershell -WindowStyle Hidden -Command \"{$psCommand}\"", 'r'));
         } else {
-            exec("{$command} 2>&1 | tee -a warming_bot.log &");
+            exec("nohup {$command} > /dev/null 2>&1 &");
         }
 
         return back()->with('success', __('messages.bot_started'));
@@ -573,10 +579,13 @@ class WarmingController extends Controller
     public function stopBot()
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Kill all ColdForge bot windows (warming + campaign)
-            exec('taskkill /F /FI "WINDOWTITLE eq ColdForge*" 2>nul');
+            // Kill node process running the bot
+            exec('wmic process where "CommandLine like \'%warming_bot\\\\bot.js%\' and Name=\'node.exe\'" call terminate 2>nul');
+            // Kill orphaned headless Chrome processes
+            exec('wmic process where "CommandLine like \'%warming_sessions%\' and Name=\'chrome.exe\'" call terminate 2>nul');
         } else {
             exec("pkill -f 'node.*bot.js' 2>/dev/null");
+            exec("pkill -f 'chrome.*warming_sessions' 2>/dev/null");
         }
 
         return back()->with('success', __('messages.bot_stopped'));

@@ -67,6 +67,13 @@
                             {{ __('app.warming') }}
                         </span>
                     </a>
+                    <a href="{{ route('reverse_warming.dashboard') }}"
+                       class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('reverse_warming.*') ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10' }}">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                            التسخين العكسي
+                        </span>
+                    </a>
                     
                     <div class="h-5 w-px bg-surface-border mx-1"></div>
 
@@ -88,24 +95,24 @@
         </div>
     </nav>
 
-    {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4" x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 5000)">
-            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
-                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                <p class="text-sm text-emerald-300">{{ session('success') }}</p>
+    {{-- Flash Messages (Toast Popups) --}}
+    <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        @if(session('success'))
+            <div class="pointer-events-auto shadow-xl bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl px-4 py-3 flex items-center gap-3 w-80 transform transition-all duration-500 translate-y-0 opacity-100" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-10 opacity-0" x-transition:enter-end="translate-y-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-y-0 opacity-100" x-transition:leave-end="translate-y-10 opacity-0">
+                <svg class="w-6 h-6 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
+                <button @click="show = false" class="ml-auto text-emerald-600 hover:text-emerald-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg></button>
             </div>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4" x-data="{ show: true }" x-show="show" x-transition>
-            <div class="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
-                <svg class="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                <p class="text-sm text-red-300">{{ session('error') }}</p>
-                <button @click="show = false" class="ml-auto text-red-400 hover:text-red-300"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg></button>
+        @endif
+
+        @if(session('error'))
+            <div class="pointer-events-auto shadow-xl bg-red-50 border-l-4 border-red-500 rounded-r-xl px-4 py-3 flex items-center gap-3 w-80 transform transition-all duration-500 translate-y-0 opacity-100" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-10 opacity-0" x-transition:enter-end="translate-y-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-y-0 opacity-100" x-transition:leave-end="translate-y-10 opacity-0">
+                <svg class="w-6 h-6 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                <p class="text-sm font-semibold text-red-800">{{ session('error') }}</p>
+                <button @click="show = false" class="ml-auto text-red-600 hover:text-red-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg></button>
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 
     {{-- Main Content --}}
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

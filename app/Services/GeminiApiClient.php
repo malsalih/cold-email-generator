@@ -11,14 +11,15 @@ class GeminiApiClient
     protected string $model;
     protected string $baseUrl;
     protected array $fallbackModels = [
+        'gemini-3-flash-preview',
+        'gemini-2.5-flash',
         'gemini-2.5-flash-lite',
-        'gemini-2.5-pro',
     ];
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY', ''));
-        $this->model = config('services.gemini.model', env('GEMINI_MODEL', 'gemini-2.5-flash'));
+        $this->apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY', 'gemini-3.1-flash-lite-preview'));
+        $this->model = config('services.gemini.model', env('GEMINI_MODEL', ));
         $this->baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     }
 

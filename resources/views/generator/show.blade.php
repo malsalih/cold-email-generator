@@ -197,8 +197,15 @@
             </span>
             <svg class="w-4 h-4 text-content-muted opacity-50 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
         </summary>
-        <div class="px-6 pb-6 border-t border-surface-border pt-4">
-            <pre class="whitespace-pre-wrap text-xs text-content-muted font-mono leading-relaxed bg-surface-bg/30 rounded-xl p-4 max-h-80 overflow-y-auto">{{ $email->full_prompt_sent }}</pre>
+        <div class="px-6 pb-6 border-t border-surface-border pt-4 space-y-4">
+            <div>
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-2 block">System Prompt (Rules & Persona)</span>
+                <pre class="whitespace-pre-wrap text-xs text-content-muted font-mono leading-relaxed bg-surface-bg/30 rounded-xl p-4 max-h-40 overflow-y-auto border border-surface-border/50">{{ $email->system_prompt ?? 'System prompt not recorded.' }}</pre>
+            </div>
+            <div>
+                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-2 block">User Prompt (Data & Guidelines)</span>
+                <pre class="whitespace-pre-wrap text-xs text-content-muted font-mono leading-relaxed bg-surface-bg/30 rounded-xl p-4 max-h-40 overflow-y-auto border border-surface-border/50">{{ $email->full_prompt_sent }}</pre>
+            </div>
         </div>
     </details>
 </div>

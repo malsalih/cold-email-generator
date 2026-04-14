@@ -7,21 +7,37 @@ echo  ║   Safety-First Architecture                      ║
 echo  ╚══════════════════════════════════════════════════╝
 echo.
 
-echo  [1/4] Starting ML Service (Spam Filter + Text Generator)...
+echo  [1/5] Starting ML Service (Spam Filter + Text Generator)...
 echo        Port: 5050  ^|  Endpoints: /predict, /generate
-start "ColdForge ML Service (Port 5050)" cmd /c "cd ml_service && .\.venv\Scripts\python app.py"
+cd ml_service
+
+if not exist ".venv\Scripts\python.exe" (
+    echo.
+    echo  [!] Virtual environment not found on this machine. Creating it now...
+    python -m venv .venv
+    echo  [!] Installing Python dependencies... This might take a minute.
+    .\.venv\Scripts\python.exe -m pip install -q -r requirements.txt
+    echo  [!] Setup complete!
+    echo.
+)
+
+start "ColdForge ML Service (Port 5050)" cmd /k ".\.venv\Scripts\python app.py"
+cd ..
 timeout /t 3 /nobreak >nul
 
-echo  [2/4] Starting Laravel Backend...
+echo  [2/5] Starting Laravel Backend...
 echo        Port: 8000  ^|  Dashboard: http://127.0.0.1:8000
-start "ColdForge Laravel (Port 8000)" cmd /c "php artisan serve"
+start "ColdForge Laravel (Port 8000)" cmd /k "php artisan serve"
 timeout /t 2 /nobreak >nul
 
-echo  [3/4] Starting Vite Frontend (HMR)...
-start "ColdForge Vite" cmd /c "npm run dev"
+echo  [3/5] Starting Vite Frontend (HMR)...
+start "ColdForge Vite" cmd /k "npm run dev"
 
-echo  [4/4] Starting Laravel Scheduler...
-start "ColdForge Scheduler" cmd /c "php artisan schedule:work"
+echo  [4/5] Starting Laravel Scheduler...
+start "ColdForge Scheduler" cmd /k "php artisan schedule:work"
+
+echo  [5/5] Starting Laravel Scheduler...
+start "ColdForge queue" cmd /k "php artisan queue:work"
 
 echo.
 echo  ╔══════════════════════════════════════════════════╗

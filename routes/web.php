@@ -102,6 +102,19 @@ Route::prefix('warming')->name('warming.')->controller(WarmingController::class)
 });
 
 // ═══════════════════════════════════════════
+// REVERSE WARMING (Gmail OAuth)
+// ═══════════════════════════════════════════
+
+Route::prefix('reverse-warming')->name('reverse_warming.')->controller(\App\Http\Controllers\ReverseWarmingController::class)->group(function () {
+    Route::get('/', 'dashboard')->name('dashboard');
+    Route::get('/oauth/redirect', 'redirect')->name('redirect');
+    Route::get('/oauth/callback', 'callback')->name('callback');
+    Route::post('/start-campaign', 'startCampaign')->name('start_campaign');
+    Route::post('/{account}/toggle', 'toggle')->name('toggle');
+    Route::delete('/{account}', 'destroy')->name('destroy');
+});
+
+// ═══════════════════════════════════════════
 // WARMING API (for Node.js bot)
 // ═══════════════════════════════════════════
 

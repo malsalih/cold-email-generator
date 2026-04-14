@@ -187,11 +187,13 @@ class CampaignController extends Controller
 
         $campaign->update(['status' => 'running']);
 
-        // Kill existing bot for THIS campaign only
+        // Kill existing bot running for campaign
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            exec("taskkill /F /FI \"WINDOWTITLE eq ColdForge Campaign Bot*{$campaign->name}*\" 2>nul");
+            exec('wmic process where "CommandLine like \'%warming_bot\\\\bot.js%\' and Name=\'node.exe\'" call terminate 2>nul');
+            exec('wmic process where "CommandLine like \'%warming_sessions%\' and Name=\'chrome.exe\'" call terminate 2>nul');
         } else {
             exec("pkill -f 'node.*bot.js' 2>/dev/null");
+            exec("pkill -f 'chrome.*warming_sessions' 2>/dev/null");
         }
         sleep(1);
 
@@ -203,12 +205,13 @@ class CampaignController extends Controller
         foreach ($accounts as $account) {
             $flags = "--loop --account={$account->id} --send-later --timezone=\"{$tz}\"";
             $command = "node \"{$botPath}\" {$flags}";
-            $title = "ColdForge Campaign Bot - {$account->email} - {$campaign->name}";
 
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                pclose(popen("start \"{$title}\" cmd /C \"{$command}\"", 'r'));
+                $windowStyle = app()->isProduction() ? 'Hidden' : 'Normal';
+                $psCommand = "Start-Process node -ArgumentList '\"{$botPath}\" {$flags}' -WindowStyle {$windowStyle}";
+                pclose(popen("powershell -WindowStyle Hidden -Command \"{$psCommand}\"", 'r'));
             } else {
-                exec("{$command} 2>&1 | tee -a campaign_bot_{$account->id}.log &");
+                exec("nohup {$command} > /dev/null 2>&1 &");
             }
         }
 
@@ -437,7 +440,8 @@ class CampaignController extends Controller
             if (!empty($result['success']) && !empty($result['data'])) {
                 return response()->json([
                     'success' => true,
-                    'subject' => $result['data']['subject'] ?? '',
+                    // 'subject' => $result['data']['subject'] ?? '',
+                    'subject' => 'Re: ' . $originalSubject ?? '',
                     'body' => $result['data']['body'] ?? '',
                     'followup_number' => $followUpNumber,
                 ]);

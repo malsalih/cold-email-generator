@@ -92,35 +92,39 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
-    {{-- Bot Log Modal --}}
-    <div id="bot-log-modal" class="hidden bg-surface-card border border-surface-border rounded-2xl p-5 max-h-[400px] overflow-y-auto">
-        <h3 class="text-sm font-bold text-content-primary mb-3 flex items-center justify-between">
-            {{ __('warming.bot_log_title') }}
-            <button onclick="document.getElementById('bot-log-modal').classList.add('hidden')" class="text-content-muted hover:text-content-primary">✕</button>
-        </h3>
-        <div class="space-y-1" id="bot-log-list">
-            @foreach($botStatus['session_logs'] as $bl)
-            <div class="flex items-start gap-2 py-1.5 border-b border-surface-border">
-                <span class="text-sm shrink-0">{{ $bl->event_icon }}</span>
-                <div class="min-w-0 flex-1">
-                    @php
-                        $botEventClasses = [
-                            'emerald' => 'text-emerald-400', 'red' => 'text-red-400',
-                            'cyan' => 'text-cyan-400', 'amber' => 'text-amber-400',
-                            'zinc' => 'text-content-muted', 'sky' => 'text-sky-400',
-                            'orange' => 'text-orange-400', 'violet' => 'text-violet-400',
-                        ];
-                    @endphp
-                    <p class="text-xs {{ $botEventClasses[$bl->event_color] ?? 'text-content-muted' }}">{{ $bl->message }}</p>
-                    <p class="text-[10px] text-content-muted opacity-60">{{ $bl->created_at->format('H:i:s') }}</p>
+        {{-- Embedded Live Terminal Log --}}
+        <div class="mt-4 pt-4 border-t border-surface-border">
+            <h3 class="text-xs font-bold text-content-secondary mb-3 uppercase tracking-wider flex items-center justify-between">
+                {{ __('warming.bot_log_title') }} (Live Execution)
+                <span class="flex h-2 w-2 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+            </h3>
+            <div class="space-y-1 h-32 overflow-y-auto pr-2" id="bot-log-list">
+                @foreach($botStatus['session_logs'] as $bl)
+                <div class="flex items-start gap-2 py-1 border-b border-surface-border/50">
+                    <span class="text-xs shrink-0">{{ $bl->event_icon }}</span>
+                    <div class="min-w-0 flex-1">
+                        @php
+                            $botEventClasses = [
+                                'emerald' => 'text-emerald-400', 'red' => 'text-red-400',
+                                'cyan' => 'text-cyan-400', 'amber' => 'text-amber-400',
+                                'zinc' => 'text-content-muted', 'sky' => 'text-sky-400',
+                                'orange' => 'text-orange-400', 'violet' => 'text-violet-400',
+                            ];
+                        @endphp
+                        <p class="text-xs font-mono {{ $botEventClasses[$bl->event_color] ?? 'text-content-muted' }}">{{ $bl->message }}</p>
+                        <p class="text-[9px] text-content-muted opacity-50">{{ $bl->created_at->format('H:i:s') }}</p>
+                    </div>
                 </div>
+                @endforeach
+                @if($botStatus['session_logs']->isEmpty())
+                <p class="text-xs text-content-muted text-center py-4 font-mono">{{ __('warming.no_logs_yet') }}</p>
+                @endif
             </div>
-            @endforeach
-            @if($botStatus['session_logs']->isEmpty())
-            <p class="text-xs text-content-muted text-center py-4">{{ __('warming.no_logs_yet') }}</p>
-            @endif
         </div>
     </div>
 
@@ -395,21 +399,26 @@
             const logList = document.getElementById('bot-log-list');
             if (data.session_logs && data.session_logs.length > 0) {
                 logList.innerHTML = data.session_logs.map(l => `
-                    <div class="flex items-start gap-2 py-1.5 border-b border-surface-border">
-                        <span class="text-sm shrink-0">${getEventIcon(l.event)}</span>
+                    <div class="flex items-start gap-2 py-1 border-b border-surface-border/50">
+                        <span class="text-xs shrink-0">${getEventIcon(l.event)}</span>
                         <div class="min-w-0 flex-1">
-                            <p class="text-xs text-content-primary">${l.message}</p>
-                            <p class="text-[10px] text-content-muted">${new Date(l.created_at).toLocaleTimeString('en-GB')}</p>
+                            <p class="text-xs font-mono ${getEventColor(l.event)}">${l.message}</p>
+                            <p class="text-[9px] text-content-muted opacity-50">${new Date(l.created_at).toLocaleTimeString('en-GB')}</p>
                         </div>
                     </div>
                 `).join('');
             }
         } catch (e) { /* silent */ }
-    }, 5000);
+    }, 3000);
     
     function getEventIcon(event) {
         const icons = { started:'🚀', job_picked:'📋', composing:'✏️', fields_filled:'✅', waiting_user:'✋', sent:'📨', failed:'❌', idle:'💤', stopped:'🛑', error:'⚠️', verified:'🔍' };
         return icons[event] || '📝';
+    }
+
+    function getEventColor(event) {
+        const colors = { started:'text-emerald-400', job_picked:'text-cyan-400', composing:'text-amber-400', fields_filled:'text-sky-400', waiting_user:'text-orange-400', sent:'text-emerald-500', failed:'text-red-400', idle:'text-zinc-500', stopped:'text-red-500', error:'text-red-500', verified:'text-violet-400' };
+        return colors[event] || 'text-content-muted';
     }
 
     function loadSavedRecipients() {

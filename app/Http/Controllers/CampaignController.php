@@ -433,16 +433,25 @@ class CampaignController extends Controller
 
         $followUpNumber = $campaign->followUps()->count() + 1;
 
+        $context = [];
+        if ($campaign->generatedEmail) {
+            $context = [
+                'owned_domain' => $campaign->generatedEmail->owned_domain,
+                'domain_niche' => $campaign->generatedEmail->domain_niche,
+                'target_website' => $campaign->generatedEmail->target_website,
+            ];
+        }
+
         try {
             $geminiService = app(\App\Services\GeminiService::class);
-            $result = $geminiService->generateFollowUp($originalSubject, $originalBody, $followUpNumber);
+            $result = $geminiService->generateFollowUp($originalSubject, $originalBody, $followUpNumber, $context);
 
             if (!empty($result['success']) && !empty($result['data'])) {
                 return response()->json([
                     'success' => true,
-                    // 'subject' => $result['data']['subject'] ?? '',
-                    'subject' => 'Re: ' . $originalSubject ?? '',
+                    'subject' => $result['data']['subject'] ?? $originalSubject,
                     'body' => $result['data']['body'] ?? '',
+                    'prompt_sent' => $result['data']['prompt_sent'] ?? 'No prompt recorded.',
                     'followup_number' => $followUpNumber,
                 ]);
             }

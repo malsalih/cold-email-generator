@@ -18,8 +18,8 @@ class GeminiApiClient
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY', 'gemini-3.1-flash-lite-preview'));
-        $this->model = config('services.gemini.model', env('GEMINI_MODEL', ));
+        $this->apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY', ''));
+        $this->model = config('services.gemini.model', env('GEMINI_MODEL', 'gemini-3.1-flash-lite-preview'));
         $this->baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     }
 
@@ -94,14 +94,14 @@ class GeminiApiClient
                         $status = $response->status();
                         $lastError = "API Error. Model: {$currentModel}, Status: {$status}";
                         $this->devLog("HTTP Failed on {$currentModel}. Status: {$status}. Duration: {$duration}ms");
-                        
+
                         if (in_array($status, [429, 503])) {
                             Log::warning("Gemini API Error {$status} on {$currentModel}. Switching to next fallback model immediately...");
                             break; // Break the attempt loop, go to the next model in foreach
                         }
-                        
+
                         Log::error("Gemini API Error ({$currentModel}): " . $response->body());
-                        
+
                         if ($attempt < $maxRetries) {
                             $this->devLog("Backing off for attempt " . ($attempt + 1));
                             sleep(pow(2, $attempt));
@@ -140,7 +140,7 @@ class GeminiApiClient
                 }
             }
         }
-        
+
         $this->devLog('All models and retries failed.');
         return ['success' => false, 'error' => $lastError];
     }

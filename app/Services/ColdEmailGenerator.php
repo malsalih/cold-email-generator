@@ -83,7 +83,7 @@ Use soft psychological triggers:
 
 ## SUBJECT LINE:
 - 2–4 words
-- طبیعی, curiosity-based
+- natural, curiosity-based
 - No clickbait or hype
 - Should feel like a real email, not marketing
 
@@ -93,6 +93,32 @@ Each email must feel independently written:
 - Different phrasing
 - Different reasoning
 - Different closing
+
+## VARIATION & ANTI-PATTERN RULES:
+
+To avoid repetition across emails:
+
+- Use different opening styles each time
+- Avoid repeating the same phrases across outputs
+- Vary how you:
+  - start the email
+  - introduce the domain
+  - express relevance
+  - close the email
+
+### NATURAL VARIATION GUIDELINES:
+- Sometimes start with:
+  - an observation
+  - a quick thought
+  - a direct statement
+- Sometimes include softeners:
+  - “might be a stretch but”
+  - “could be off here”
+- Vary CTA phrasing naturally
+
+### IMPORTANT:
+Do NOT use obvious spin syntax.
+Variation must feel natural and human — not mechanical.
 
 ## OUTPUT FORMAT:
 Return ONLY valid JSON array.
@@ -114,18 +140,18 @@ PROMPT;
         $tone = $params['tone'] ?? 'professional';
         $targetEmails = $params['target_emails'] ?? [];
         $totalEmails = count($targetEmails);
-        
+
         // إذا لم يتم تمرير max_emails وكان عدد الإيميلات صفر، نضع 1 كقيمة افتراضية
         $maxEmails = $params['max_emails'] ?? ($totalEmails > 0 ? $totalEmails : 1);
 
         // Use max_emails directly for variant count to allow multiple drafts for one prospect
         $variantCount = max(1, $maxEmails);
-        
+
         // Ensure we don't generate empty variants if we have a lot of emails but low max_emails
         // Actually, the previous logic was: if totalEmails > 0, cap at totalEmails.
         // We want: if user asks for 3, give 3. If they have 50 person, split them.
         // The distribution logic handles the splitting.
-        
+
         $emailGroups = [];
         for ($g = 0; $g < $variantCount; $g++) {
             $emailGroups[$g] = [];
@@ -152,15 +178,15 @@ PROMPT;
         return <<<PROMPT
 
 
-Generate {variantCount} highly personalized cold email draft(s).
+Generate {$variantCount} highly personalized cold email draft(s).
 
 ## CONTEXT:
 
-Domain for sale: {ownedDomain}  
-Industry/Niche: {domainNiche}  
-Target Website: {targetWebsite}  
+Domain for sale: {$ownedDomain}  
+Industry/Niche: {$domainNiche}  
+Target Website: {$targetWebsite}  
 
-{distributionDesc}
+{$distributionDesc}
 
 ## OBJECTIVE:
 - Get a reply
@@ -169,11 +195,11 @@ Target Website: {targetWebsite}
 
 ## STRATEGY INPUT (CONTROLLED USE):
 
-Tone guidance: {tone}  
-Additional instructions: {instructions}  
+Tone guidance: {$tone}
+Additional instructions: {$instructions}
 
 IMPORTANT:
-- Tone must remain natural and human — do NOT become overly formal, salesy, or مصنوع
+- Tone must remain natural and human — do NOT become overly formal, salesy, or artificial
 - Instructions should influence the angle, NOT break realism or add hype
 
 ## PERSONALIZATION ENGINE:
@@ -207,7 +233,7 @@ Each variant must:
 - Use different CTA phrasing
 
 ## CTA STYLE:
-Keep it minimal and الطبيعي:
+Keep it minimal and natural:
 - “worth a quick chat?”
 - “any thoughts?”
 - “open to it?”

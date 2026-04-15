@@ -16,7 +16,7 @@ class GeneratedEmail extends Model
         'target_domain',
         'target_emails',
         'user_instructions',
-        'product_service',
+        'domain_niche',
         'tone',
         'system_prompt',
         'full_prompt_sent',

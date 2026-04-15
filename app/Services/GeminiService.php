@@ -39,8 +39,8 @@ class GeminiService
     /**
      * Generate a follow-up email based on the original campaign email.
      */
-    public function generateFollowUp(string $originalSubject, string $originalBody, int $followUpNumber = 1): array
+    public function generateFollowUp(string $originalSubject, string $originalBody, int $followUpNumber = 1, array $context = []): array
     {
-        return $this->followUpGenerator->generate($originalSubject, $originalBody, $followUpNumber);
+        return $this->followUpGenerator->generate($originalSubject, $originalBody, $followUpNumber, $context);
     }
 }

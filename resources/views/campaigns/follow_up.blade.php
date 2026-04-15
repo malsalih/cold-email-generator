@@ -71,8 +71,9 @@
         <div class="bg-surface-card border border-surface-border rounded-2xl p-6 space-y-4" x-data="{ aiLoading: false, aiError: '' }">
             <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-content-primary flex items-center gap-2">✍️ {{ __('campaign.followup_content') }}</h2>
-                <button type="button" @click="
+                <button type="button" x-data @click="
                     aiLoading = true; aiError = '';
+                    const btn = $el;
                     fetch('{{ route('campaigns.generate_followup_email', $campaign) }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
@@ -83,6 +84,8 @@
                         if (data.success) {
                             document.querySelector('input[name=custom_subject]').value = data.subject;
                             document.querySelector('textarea[name=custom_body]').value = data.body;
+                            $refs.promptContainer.innerHTML = data.prompt_sent;
+                            $refs.promptSection.classList.remove('hidden');
                         } else {
                             aiError = data.error || '{{ __('campaign.error_generation_failed') }}';
                         }
@@ -109,10 +112,22 @@
             <template x-if="aiError">
                 <div class="px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-500" x-text="aiError"></div>
             </template>
+
+            <details x-ref="promptSection" class="hidden bg-surface-bg border border-surface-border rounded-xl overflow-hidden group">
+                <summary class="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-surface-bg/50 transition-colors">
+                    <span class="text-xs font-medium text-content-muted flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
+                        View Prompt Sent
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-surface-border pt-2">
+                    <pre x-ref="promptContainer" class="whitespace-pre-wrap text-[10px] text-content-muted font-mono leading-relaxed bg-surface-card/50 rounded-lg p-3 max-h-40 overflow-y-auto border border-surface-border/50"></pre>
+                </div>
+            </details>
             <p class="text-[11px] text-content-muted">{{ __('campaign.ai_hint') }}</p>
             <div class="space-y-1.5">
                 <label class="text-xs font-medium text-content-muted">{{ __('campaign.subject') }}</label>
-                <input type="text" name="custom_subject" required value="{{ old('custom_subject', 'Re: ' . $campaign->getSubject()) }}"
+                <input type="text" name="custom_subject" required value="{{ old('custom_subject', $campaign->getSubject()) }}"
                        class="w-full px-4 py-2.5 bg-surface-bg border border-surface-border rounded-xl text-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all text-{{ app()->getLocale() == 'en' ? 'left' : 'right' }}" dir="ltr">
             </div>
             <div class="space-y-1.5">

@@ -98,7 +98,7 @@ class EmailGeneratorController extends Controller
                 'target_website' => $targetWebsite,
                 'target_emails' => $targetEmails,
                 'user_instructions' => $validated['instructions'],
-                'product_service' => $request->domain_niche ?? 'General Business',
+                'domain_niche' => $request->domain_niche ?? 'General Business',
                 'tone' => $validated['tone'],
                 'system_prompt' => $result['system_prompt'],
                 'full_prompt_sent' => $result['full_prompt'],
